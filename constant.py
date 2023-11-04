@@ -1,0 +1,13 @@
+CONST_APP_NAME = "AvA DB"
+CONST_PORT = "port"
+
+CONST_CLI_PROMPT = ">>> "
+CONST_CLI_WELCOME = "AvA Database CLI. Type 'exit' to quit."
+
+CONST_DB_TYPE_SQL = "sql"
+CONST_DB_TYPE_NOSQL = "nosql"
+
+CONST_REQUEST_KEY_TYPE = "type"
+CONST_REQUEST_KEY_QUERY = "query"
+
+CONST_DOWNLOAD_CHUNK_SIZE = 4096
