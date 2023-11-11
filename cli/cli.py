@@ -5,20 +5,19 @@ import constant
 import logger
 import tempfile
 
-logger = logger.get_logger()
-supported_database_types = [constant.CONST_DB_TYPE_SQL, constant.CONST_DB_TYPE_NOSQL]
+logger = logger.get_logger(constant.CLI_NAME)
 
 
-def download_file(url, params) -> str:
+def download_file(url, query) -> str:
     try:
         logger.info("Try to download from url {} ...".format(url))
-        with requests.get(url, params=params, stream=True) as r:
+        with requests.get(url, json=query, stream=True) as r:
             logger.info("Receive response from url {}, status code: {}".format(url, r.status_code))
             r.raise_for_status()
 
             temp_file = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
             logger.info("Tmp file {} is created to save file from {}".format(temp_file.name, url))
-            for chunk in r.iter_content(chunk_size=constant.CONST_DOWNLOAD_CHUNK_SIZE):
+            for chunk in r.iter_content(chunk_size=constant.DOWNLOAD_CHUNK_SIZE):
                 temp_file.write(chunk.decode('utf-8'))
                 temp_file.flush()
 
@@ -41,16 +40,16 @@ def print_file(file_name: str):
 
 
 def is_request_valid(request_json) -> bool:
-    if request_json.get(constant.CONST_REQUEST_KEY_TYPE) is None:
-        print("Please specify the type of database with: {{'{}': ${{database_type}}}}, supported values are: {}".format(constant.CONST_REQUEST_KEY_TYPE, supported_database_types))
+    if request_json.get(constant.REQUEST_KEY_TYPE) is None:
+        print("Please specify the type of database with: {{'{}': ${{database_type}}}}, supported values are: {}".format(constant.REQUEST_KEY_TYPE, config.supported_database_types))
         return False
 
-    if request_json.get(constant.CONST_REQUEST_KEY_TYPE) not in [constant.CONST_DB_TYPE_SQL, constant.CONST_DB_TYPE_NOSQL]:
-        print("Please specify the correct type of database with: {{'{}': ${{database_type}}}}, supported values are: {}".format(constant.CONST_REQUEST_KEY_TYPE, supported_database_types))
+    if request_json.get(constant.REQUEST_KEY_TYPE) not in [constant.DB_TYPE_SQL, constant.DB_TYPE_NOSQL]:
+        print("Please specify the correct type of database with: {{'{}': ${{database_type}}}}, supported values are: {}".format(constant.REQUEST_KEY_TYPE, config.supported_database_types))
         return False
 
-    if request_json.get(constant.CONST_REQUEST_KEY_QUERY) is None:
-        print("Please offer the query: {{'{}': ${{database_type}}}}, supported values are: {}".format(constant.CONST_REQUEST_KEY_QUERY, supported_database_types))
+    if request_json.get(constant.REQUEST_KEY_QUERY) is None:
+        print("Please offer the query: {{'{}': ${{database_type}}}}, supported values are: {}".format(constant.REQUEST_KEY_QUERY, config.supported_database_types))
         return False
 
     return True
@@ -65,21 +64,21 @@ def parse_json_input(user_input: str):
     except Exception as e:
         logger.error("Invalid json format: {}".format(user_input))
         print("Please offer a valid json object as request with the format: {{'{}': ${{database_type}}, '{}': ${{query}} }}"
-              .format(constant.CONST_REQUEST_KEY_TYPE, constant.CONST_REQUEST_KEY_QUERY))
+              .format(constant.REQUEST_KEY_TYPE, constant.REQUEST_KEY_QUERY))
         return None
 
 
-def get_cfg(request_json):
+def get_cfg(request_json) -> config.DBConfig | None:
     if not is_request_valid(request_json):
         return None
-    return config.sql_cfg if request_json.get(constant.CONST_REQUEST_KEY_TYPE) == constant.CONST_DB_TYPE_SQL else config.nosql_cfg
+    return config.sql_cfg if request_json.get(constant.REQUEST_KEY_TYPE) == constant.DB_TYPE_SQL else config.nosql_cfg
 
 
 def main():
     logger.info("User connects")
-    print(constant.CONST_CLI_WELCOME)
+    print(constant.CLI_WELCOME)
     while True:
-        user_input = input(constant.CONST_CLI_PROMPT)
+        user_input = input(constant.CLI_PROMPT)
         if user_input.lower() == 'exit':
             logger.info("User exits")
             break
@@ -89,7 +88,7 @@ def main():
                 logger.error("Invalid user input: {}".format(user_input))
                 continue
             cfg = get_cfg(request_json)
-            tmp_file = download_file('http://localhost:{}'.format(cfg.get(constant.CONST_PORT)), request_json.get(constant.CONST_REQUEST_KEY_QUERY))
+            tmp_file = download_file('http://localhost:{}'.format(cfg.get_port()), request_json.get(constant.REQUEST_KEY_QUERY))
             if tmp_file == "":
                 print("Get result from database failed")
                 continue
