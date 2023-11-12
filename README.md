@@ -1,4 +1,4 @@
-### Notes
+### Important Notes
 
 #### Python Version
 
@@ -13,14 +13,47 @@
 - All records of the same table should be stored under the same file. To iterate through all files with limited memory, call `os.scandir` or `os.walkdir` (which calls `readdir(3)` behind the scene).
   Do not use `os.listdir`.
 
+### Usage
+
+#### Import Data
+
+1. For Nosql
+    ```bash
+    chmod +x scripts/import_nosql_data.sh
+    ./scripts/import_nosql_data.sh
+    ```
+   Tables are under ./tables while the metadata is under ./metadata. Must delete these directories before import new data.
+
+#### DB Server
+
+1. Start
+
+    ```bash
+    chmod +x scripts/start_all_server.sh
+    ./scripts/start_all_server.sh
+    ```
+   or start sql/nosql server only
+    ```bash
+    chmod +x scripts/start_sql_server.sh
+    ./scripts/start_sql_server.sh
+    ```
+    ```bash
+    chmod +x scripts/start_sql_server.sh
+    ./scripts/start_nosql_server.sh
+    ```
+
+2. Check Log
+
+   Logs are under project root dir.
+
 #### CLI
 
 1. Start CLI
     ```bash
-    chmod +x ${path_to_run_cli}
-    ./${path_to_run_cli}
+    chmod +x scripts/run_cli.sh
+    ./scripts/run_cli.sh
     ```
-    Or
+   Or
     ```bash
     cd ${project_root_dir}
     python3 -m cli.cli
@@ -32,4 +65,5 @@
     >>> {"db_type": "nosql", ${query}}
     >>> {"db_type": "sql", ${query}}
     ```
-   
+
+
