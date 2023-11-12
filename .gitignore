@@ -1,5 +1,7 @@
 *.log
 *.idea
 .local
+tables
+metadata
 *.pyc
 venv
