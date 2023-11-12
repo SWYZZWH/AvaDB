@@ -32,15 +32,15 @@ class DBConfig:
 nosql_cfg = DBConfig(
     db_type=constant.DB_TYPE_NOSQL,
     port=9527,
-    tables_dir=os.path.join(os.path.abspath(__file__), constant.TABLES_SUB_DIR, constant.DB_TYPE_NOSQL),
-    metadata_dir=os.path.join(os.path.abspath(__file__), constant.METADATA_SUB_DIR, constant.DB_TYPE_NOSQL),
+    tables_dir=os.path.join(os.path.dirname(os.path.abspath(__file__)), constant.TABLES_SUB_DIR, constant.DB_TYPE_NOSQL),
+    metadata_dir=os.path.join(os.path.dirname(os.path.abspath(__file__)), constant.METADATA_SUB_DIR, constant.DB_TYPE_NOSQL),
 )
 
 sql_cfg = DBConfig(
     db_type=constant.DB_TYPE_SQL,
     port=9528,
-    tables_dir=os.path.join(os.path.abspath(__file__), constant.TABLES_SUB_DIR, constant.DB_TYPE_SQL),
-    metadata_dir=os.path.join(os.path.abspath(__file__), constant.METADATA_SUB_DIR, constant.DB_TYPE_NOSQL),
+    tables_dir=os.path.join(os.path.dirname(os.path.abspath(__file__)), constant.TABLES_SUB_DIR, constant.DB_TYPE_SQL),
+    metadata_dir=os.path.join(os.path.dirname(os.path.abspath(__file__)), constant.METADATA_SUB_DIR, constant.DB_TYPE_NOSQL),
 )
 
 config_map = {

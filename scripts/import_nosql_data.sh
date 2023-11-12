@@ -1,0 +1,1 @@
+python3 -m app.services.database.nosql.data_importer.data_importer dataset/ign.csv

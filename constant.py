@@ -14,3 +14,7 @@ REQUEST_KEY_QUERY = "query"
 
 TABLES_SUB_DIR = "tables"
 METADATA_SUB_DIR = "metadata"
+
+METADATA_TABLE_NAME_KEY = "table_name"
+METADATA_NUMBER_OF_COLUMN_KEY = "number_of_columns"
+METADATA_FIELDS_KEY = "fields"
