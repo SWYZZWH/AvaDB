@@ -6,7 +6,7 @@ from app.services.database.nosql.db_factory import DBFactory as NosqlDBFactory
 from app.services.database.sql.db_factory import DBFactory as SQLDBFactory
 import config
 import logger
-from app.common.query_result.query_result import QueryResult
+from app.common.query.query_result import QueryResult
 from app.common.context import context
 from app.common.context.context import Context
 from typing import cast

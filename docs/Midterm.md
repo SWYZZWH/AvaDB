@@ -226,7 +226,7 @@ Note: column names are **case-insensitive**.
 ```json
 {
     tableType: "simple",
-    srcTable: "ign_games",
+    srcTables: ["ign_games"],
     desiredColumns: ["0:Title", "0:Score"],
     RowFilter: {
         op: "&&",
@@ -257,7 +257,7 @@ For unary operator including "!", only one property (v1) is provided.
 ```json
 {
     tableType: "simple",
-    srcTable: "ign_games",
+   srcTables: ["ign_games"],
     groupBy: "0:Platform"
 }
 ```
@@ -272,7 +272,7 @@ Grouping is implemented by `groupBy` property which can be a reference to a colu
 // Aggregation
 {
  	tableType: "simple",
-    srcTable: "ign_games",
+   srcTables: ["ign_games"],
     groupBy: "0:Platform",
     desiredColumns: ["0:Platform", {
         aggFunc: "avg",
@@ -301,7 +301,7 @@ Supported aggregation functions including:
 ```json
 {
     tableType: "simple",
-    srcTable: "ign_games",
+   srcTables: ["ign_games"],
     desiredColumns: ["0:Title", "0:ReleaseYear"],
     orderedBy: [
         {

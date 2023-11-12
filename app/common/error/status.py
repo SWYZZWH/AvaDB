@@ -19,7 +19,16 @@ class Status:
     def __str__(self) -> str:
         return " status code: {}, msg: {}".format(self.error_code.name, self.msg)
 
+    def __repr__(self) -> str:
+        return self.__str__()
 
-OK: Status = Status(codes.ErrorCode.OK)
-START_FAILED: Status = Status(codes.ErrorCode.OK, "failed to start database engine")
-STOP_FAILED: Status = Status(codes.ErrorCode.OK, "failed to stop database engine")
+
+OK: Status = Status(codes.ErrorCode.OK, "ok")
+START_FAILED: Status = Status(codes.ErrorCode.START_FAILED, "failed to start database engine")
+STOP_FAILED: Status = Status(codes.ErrorCode.STOP_FAILED, "failed to stop database engine")
+
+CALCULATE_PARAM_CNT_ERROR: Status = Status(codes.ErrorCode.CALCULATE_PARAM_CNT_ERROR, "mismatch of param count of the operator")
+CALCULATE_PARAM_TYPE_ERROR: Status = Status(codes.ErrorCode.CALCULATE_PARAM_TYPE_ERROR, "mismatch of param type of the operator")
+
+if __name__ == "__main__":
+    print(CALCULATE_PARAM_TYPE_ERROR)

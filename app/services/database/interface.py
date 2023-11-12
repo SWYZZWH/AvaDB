@@ -1,6 +1,6 @@
 from app.common.context.context import Context
-from app.common.error.status import Status, OK
-from app.common.query_result.query_result import QueryResult
+from app.common.error.status import Status
+from app.common.query.query_result import QueryResult
 
 
 class DBInterface:
