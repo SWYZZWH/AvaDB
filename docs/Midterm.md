@@ -203,7 +203,7 @@ Each query can be represented by a single json object. All SQLs above will now b
 {
     tableType: "simple",
     srcTables: ["ign_games"],
-    desiredColumns: ["0:Title", "0:Platform", "0:ReleaseYear"],
+    desiredColumns: ["0::Title", "0::Platform", "0::ReleaseYear"],
 }
 ```
 
@@ -330,8 +330,8 @@ Results can be sorted by specifying`orderedBy`. Multiple columns can be added. T
         op: "&&",
         v1: {
             op: "==",
-            v1: "0:Score",
-            v2: "1:Score",
+            v1: "0::Score",
+            v2: "1::Score",
         },
         v2: {
             op: "!=",
@@ -340,7 +340,7 @@ Results can be sorted by specifying`orderedBy`. Multiple columns can be added. T
         }
     },
     srcTables: ["ign_games", "ign_games"],
-    desiredColumns: ["0:Title", "1:Platform"],
+    desiredColumns: ["0::Title", "1::Platform"],
 }
 ```
 
@@ -365,8 +365,8 @@ Our query language is flexible and powerful enough to support join of multiple t
         op: "&&",
         v1: {
             op: "==",
-            v1: "0:Score",
-            v2: "1:Score",
+            v1: "0::Score",
+            v2: "1::Score",
         },
         v2: {
             op: "!=",
@@ -381,8 +381,8 @@ Our query language is flexible and powerful enough to support join of multiple t
             op: "&&",
             v1: {
                 op: "==",
-                v1: "0:Score",
-                v2: "1:Score",
+                v1: "0::Score",
+                v2: "1::Score",
             },
             v2: {
                 op: "!=",
@@ -391,9 +391,9 @@ Our query language is flexible and powerful enough to support join of multiple t
             }
     	},
         srcTables: ["ign_games", "ign_games"],
-        desiredColumns: ["0:Title", "1:Platform"],
+        desiredColumns: ["0::Title", "1::Platform"],
     }],
-    desiredColumns: ["0:Title", "1:Platform"],
+    desiredColumns: ["0::Title", "1::Platform"],
 }
 ```
 

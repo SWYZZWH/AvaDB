@@ -16,8 +16,14 @@ TABLES_SUB_DIR = "tables"
 METADATA_SUB_DIR = "metadata"
 
 METADATA_TABLE_NAME_KEY = "table_name"
-METADATA_NUMBER_OF_COLUMN_KEY = "number_of_columns"
 METADATA_FIELDS_KEY = "fields"
+
+QUERY_OP_KEY = "op"
+QUERY_VAR1_KEY = "v1"
+QUERY_VAR2_KEY = "v2"
+QUERY_FIELD_REF_SYM = "::"
+
+TMP_TABLE_PREFIX = "_"
 
 OP_NAME_NOT = "!"
 OP_NAME_AND = "&&"

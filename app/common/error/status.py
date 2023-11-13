@@ -30,5 +30,18 @@ STOP_FAILED: Status = Status(codes.ErrorCode.STOP_FAILED, "failed to stop databa
 CALCULATE_PARAM_CNT_ERROR: Status = Status(codes.ErrorCode.CALCULATE_PARAM_CNT_ERROR, "mismatch of param count of the operator")
 CALCULATE_PARAM_TYPE_ERROR: Status = Status(codes.ErrorCode.CALCULATE_PARAM_TYPE_ERROR, "mismatch of param type of the operator")
 
+DUPLICATED_TABLE_CREATION_REQUEST: Status = Status(codes.ErrorCode.DUPLICATED_TABLE_CREATION_REQUEST, "failed to create a table which is already existed")
+
+INVALID_ARGUMENT: Status = Status(codes.ErrorCode.INVALID_ARGUMENT, "invalid argument")
+FILE_NOT_EXIST: Status = Status(codes.ErrorCode.FILE_NOT_EXIST, "file doesn't exist")
+FILE_EXIST: Status = Status(codes.ErrorCode.FILE_EXIST, "file is already existed")
+UNKNOWN: Status = Status(codes.ErrorCode.UNKNOWN, "unknown")
+UNEXPECTED_EMPTY: Status = Status(codes.ErrorCode.UNEXPECTED_EMPTY, "should not be empty")
+UNSUPPORTED: Status = Status(codes.ErrorCode.UNSUPPORTED, "unsupported")
+INCONSISTENT: Status = Status(codes.ErrorCode.INCONSISTENT, "inconsistent")
+INTERNAL: Status = Status(codes.ErrorCode.INTERNAL, "internal error")
+NOT_IMPLEMENTED: Status = Status(codes.ErrorCode.NOT_IMPLEMENTED, "not implemented")
+TYPE_ERROR: Status = Status(codes.ErrorCode.TYPE_ERROR, "type error")
+
 if __name__ == "__main__":
     print(CALCULATE_PARAM_TYPE_ERROR)

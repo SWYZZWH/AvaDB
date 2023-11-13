@@ -1,4 +1,4 @@
-from app.common.query.query_result import QueryResult
+from app.common.query.result import QueryResult
 from app.services.database.interface import DBInterface
 from app.common.context.context import Context
 from app.common.error.status import Status, OK

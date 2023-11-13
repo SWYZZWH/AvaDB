@@ -16,7 +16,7 @@ class Operator:
     def get_name(self):
         return self.op_name
 
-    def calculate(self, *args: any) -> (any, Status):
+    def valuate(self, *args: any) -> (any, Status):
         # always fail for base class
         if self.get_param_cnt() != len(args):
             return 0, CALCULATE_PARAM_CNT_ERROR
@@ -37,7 +37,7 @@ class BiOperator(Operator):
 
 class ArithOperator(Operator):
 
-    def calculate(self, *args: int | float) -> (int | float, Status):
+    def valuate(self, *args: int | float) -> (int | float, Status):
         if self.get_param_cnt() != len(args):
             return 0, CALCULATE_PARAM_CNT_ERROR
         for arg in args:
@@ -48,7 +48,7 @@ class ArithOperator(Operator):
 
 class LogicOperator(Operator):
 
-    def calculate(self, *args: bool) -> (bool, Status):
+    def valuate(self, *args: bool) -> (bool, Status):
         if self.get_param_cnt() != len(args):
             return 0, CALCULATE_PARAM_CNT_ERROR
         for arg in args:
@@ -59,7 +59,7 @@ class LogicOperator(Operator):
 
 class ComparisonOperator(Operator):
 
-    def calculate(self, *args: bool) -> (bool, Status):
+    def valuate(self, *args: bool) -> (bool, Status):
         if self.get_param_cnt() != len(args):
             return 0, CALCULATE_PARAM_CNT_ERROR
         if not all(isinstance(arg, type(args[0])) for arg in args):
@@ -82,7 +82,7 @@ class LogicBiOperator(BiOperator):
 
 class EqualityBiOperator(BiOperator):
 
-    def calculate(self, *args: bool) -> (bool, Status):
+    def valuate(self, *args: bool) -> (bool, Status):
         if self.get_param_cnt() != len(args):
             return 0, CALCULATE_PARAM_CNT_ERROR
 
@@ -99,7 +99,7 @@ class EqualityBiOperator(BiOperator):
 class ComparisonBiOperator(BiOperator, ComparisonOperator):
     pass
 
-
+# TODO add more operators
 operator_map = {
     constant.OP_NAME_NOT: LogicUniOperator(constant.OP_NAME_NOT, operator.not_),
     constant.OP_NAME_AND: LogicBiOperator(constant.OP_NAME_AND, operator.and_),
@@ -120,32 +120,32 @@ operator_map = {
 }
 
 if __name__ == "__main__":
-    assert operator_map["!"].calculate(False)[0]
-    assert not operator_map["!"].calculate(False, True)[1].ok()
-    assert not operator_map["!"].calculate(1)[1].ok()
+    assert operator_map["!"].valuate(False)[0]
+    assert not operator_map["!"].valuate(False, True)[1].ok()
+    assert not operator_map["!"].valuate(1)[1].ok()
 
-    assert operator_map["&&"].calculate(True, False)[1].ok()
-    assert not operator_map["&&"].calculate(True, False)[0]
-    assert not operator_map["&&"].calculate(True)[1].ok()
+    assert operator_map["&&"].valuate(True, False)[1].ok()
+    assert not operator_map["&&"].valuate(True, False)[0]
+    assert not operator_map["&&"].valuate(True)[1].ok()
 
-    assert operator_map["<"].calculate(1, 2)[1].ok()
-    assert operator_map["<"].calculate(1, 2)[0]
-    assert not operator_map["<"].calculate(1, 2, 3)[1].ok()
-    assert not operator_map["<"].calculate(1)[1].ok()
-    assert not operator_map["<"].calculate("1", 1)[1].ok()
-    assert not operator_map["<"].calculate(1, 1)[0]
+    assert operator_map["<"].valuate(1, 2)[1].ok()
+    assert operator_map["<"].valuate(1, 2)[0]
+    assert not operator_map["<"].valuate(1, 2, 3)[1].ok()
+    assert not operator_map["<"].valuate(1)[1].ok()
+    assert not operator_map["<"].valuate("1", 1)[1].ok()
+    assert not operator_map["<"].valuate(1, 1)[0]
 
-    assert operator_map[">"].calculate(1, 2)[1].ok()
-    assert operator_map[">"].calculate(2, 1)[0]
-    assert not operator_map[">"].calculate(1, 2, 3)[1].ok()
-    assert not operator_map[">"].calculate(1)[1].ok()
-    assert not operator_map[">"].calculate("1", 1)[1].ok()
-    assert not operator_map[">"].calculate(1, 1)[0]
+    assert operator_map[">"].valuate(1, 2)[1].ok()
+    assert operator_map[">"].valuate(2, 1)[0]
+    assert not operator_map[">"].valuate(1, 2, 3)[1].ok()
+    assert not operator_map[">"].valuate(1)[1].ok()
+    assert not operator_map[">"].valuate("1", 1)[1].ok()
+    assert not operator_map[">"].valuate(1, 1)[0]
 
-    assert not operator_map["=="].calculate(1, True)[0]
-    assert operator_map["!="].calculate(1, True)[0]
+    assert not operator_map["=="].valuate(1, True)[0]
+    assert operator_map["!="].valuate(1, True)[0]
 
-    assert operator_map["*"].calculate(1, 2)[0] == 2
-    assert operator_map["/"].calculate(1, 2)[0] == 0.5
-    assert not operator_map["/"].calculate(True, 2)[1].ok()
-    assert not operator_map["/"].calculate(2)[1].ok()
+    assert operator_map["*"].valuate(1, 2)[0] == 2
+    assert operator_map["/"].valuate(1, 2)[0] == 0.5
+    assert not operator_map["/"].valuate(True, 2)[1].ok()
+    assert not operator_map["/"].valuate(2)[1].ok()

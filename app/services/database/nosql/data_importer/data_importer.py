@@ -31,7 +31,6 @@ def process_csv(file_path):
     os.makedirs(table_path)
     os.makedirs(os.path.dirname(metadata_path), exist_ok=True)
 
-    total_cnt = 0
     with open(file_path, newline='') as csv_file:
         reader = csv.reader(csv_file)
         columns = next(reader)
@@ -45,9 +44,8 @@ def process_csv(file_path):
 
             with open(json_file, 'w') as f:
                 json.dump(data, f, indent=4)
-                total_cnt += 1
 
-    metadata = {constant.METADATA_TABLE_NAME_KEY: database_name, constant.METADATA_FIELDS_KEY: {}, constant.METADATA_NUMBER_OF_COLUMN_KEY: total_cnt}
+    metadata = {constant.METADATA_TABLE_NAME_KEY: database_name, constant.METADATA_FIELDS_KEY: {}}
     with open(file_path, newline='') as csv_file:
         reader = csv.reader(csv_file)
         columns = next(reader)
