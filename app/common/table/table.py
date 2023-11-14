@@ -46,6 +46,16 @@ class Table:
             self.logger.warn("failed to insert record {} to table {}".format(record, self.name))
             return status
         # self.logger.info("record {} is inserted to table {}".format(record, self.name))
+        return OK
+
+    def insert_bulk(self, records: list[dict]) -> Status:
+        # self.logger.info("inserting a record {} to table {}".format(record, self.name))
+        status = self.chunk_manager.append_bulk(records)
+        if not status.ok():
+            self.logger.warn("failed to insert record #{} to table {}".format(len(records), self.name))
+            return status
+        # self.logger.info("record {} is inserted to table {}".format(record, self.name))
+        return OK
 
     # TODO add lock for all these operations on table
     def update(self, selector, new_record: dict) -> Status:
@@ -102,8 +112,6 @@ class Table:
         if not is_changed:
             self.logger.warn("no record is deleted")
         return OK
-
-
 
     # def filter(self, selector) -> Table:
 

@@ -8,32 +8,8 @@ import logger
 from app.common.context.context import Context
 
 from app.common.error.status import Status, FILE_NOT_EXIST, UNKNOWN, UNEXPECTED_EMPTY, UNSUPPORTED, OK, FILE_EXIST, INCONSISTENT
+from app.common.table.field import FieldInfo
 from app.services.database.sql.db_factory import DBFactory as SQLDBFactory
-
-
-class FieldInfo:
-
-    def __init__(self, name: str, value_type: str):
-        self.name = name
-        self.value_type = value_type
-
-    def get_name(self) -> str:
-        return self.name
-
-    def get_value_type(self) -> str:
-        return self.value_type
-
-    def __str__(self) -> str:
-        return "name: {}, type: {}".format(self.get_name(), self.get_value_type())
-
-    def __repr__(self) -> str:
-        return self.__str__()
-
-    def __eq__(self, other: 'FieldInfo') -> bool:
-        return self.name == other.name and self.value_type == other.value_type
-
-    def __ne__(self, other: 'FieldInfo') -> bool:
-        return not self.__eq__(other)
 
 
 # Metadata only works for sql

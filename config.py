@@ -10,7 +10,8 @@ default_field_type_value = {
 }
 supported_database_types = [constant.DB_TYPE_SQL, constant.DB_TYPE_NOSQL]
 metadata_ext = ".json"
-merge_sort_chunks = 100
+merge_sort_ways = 100
+max_chunk_size = 1024
 
 class DBConfig:
 

@@ -75,6 +75,18 @@ class ChunkManager:
     def get_chunk_path(self, chunk_idx) -> str:
         return os.path.join(self.table_path, str(chunk_idx) + self.ext)
 
+    def get_iter(self) -> ChunkIterator:
+        return ChunkIterator(self)
+
+    def get_remaining_slots(self, occupied_cnt: int) -> int:
+        remaining = self.max_chunk_size - occupied_cnt
+        if remaining < 0:
+            self.logger.error("detected overflow chunk!, occupied_cnt: {}, capacity: {}".format(occupied_cnt, self.max_chunk_size))
+        return max(0, remaining)
+
+    def get_last_chunk_index(self) -> int:
+        return self.total_chunks - 1  # return -1 when table is empty
+
     # return a list of objects which can be iterated through
     # for sql, we have to transfer each row (which is simply a list to an object) to use it with ease
     def load_chunk(self, chunk_idx: int) -> (list[dict[str, object]], Status):
@@ -95,13 +107,16 @@ class ChunkManager:
             # Load a JSON file
             with open(chunk_path, 'r') as file:
                 data = json.load(file)
+            self.logger.info("load trunk {} for sql  successfully".format(chunk_idx))
             return data, OK
         elif self.db_type == constant.DB_TYPE_SQL:
             # Load a CSV file and convert each row to a dictionary
             with open(chunk_path, 'r') as file:
                 reader = csv.reader(file)
                 data = [row_to_object(row, self.metadata) for row in reader]
+            self.logger.info("load trunk {} for nosql  successfully".format(chunk_idx))
             return data, OK
+
 
         return [], UNKNOWN
 
@@ -126,55 +141,41 @@ class ChunkManager:
     # always append new record to the last chunk
     # if the last chunk is full i.e. len(chunk) == config.chunk_size, then create a new chunk as the last chunk
     def append(self, record: dict) -> Status:
+        self.append_bulk([record])
+        return OK
+
+    def append_bulk(self, records: list[dict]) -> Status:
         if self.is_empty_table():
-            self.create_new_chunk()
-
-        chunk, status = self.get_last_chunk()
-        # print(len(chunk))
-
-        if not status.ok():
-            self.logger.error("failed to append new record as unable to load last chunk")
-            return status
-
-        if self.is_chunk_full(chunk):
-            self.logger.info("chunk {} is already full, will create a new chunk".format(self.total_chunks))
             status = self.create_new_chunk()
             if not status.ok():
-                return status
+                return INTERNAL
 
-        chunk_id = self.total_chunks - 1
         chunk, status = self.get_last_chunk()
         if not status.ok():
             self.logger.error("failed to append new record as unable to load last chunk")
             return status
 
-        if self.cfg.is_nosql():
-            chunk.append(record)
-            try:
-                # override the content of the chunk
-                with open(self.get_chunk_path(chunk_id), "w") as f:
-                    json.dump(chunk, f)
-                return OK
-            except Exception as e:
-                self.logger.error("failed to append json {} to chunk".format(record))
+        # fill the last chunk
+        remaining = self.get_remaining_slots(len(chunk))
+        insert_cnt = min(remaining, len(records))
+        chunk += records[:insert_cnt]
+        status = self.update_chunk(self.get_last_chunk_index(), chunk)
+        if not status.ok():
+            self.logger.error("failed to append records to the last chunk")
+            return status
+        records = records[insert_cnt:]
+
+        # create new chunks and fill
+        while len(records):
+            status = self.create_new_chunk()
+            if not status.ok():
                 return INTERNAL
-
-        elif self.cfg.is_sql():
-            new_row = []
-            for field_info in self.metadata.get_all_fields():
-                value = record.get(field_info.get_name())
-                if value is None:
-                    value = config.default_field_type_value[field_info.get_value_type()]
-                    self.logger.error("use default value {} for field {}, record {}".format(value, field_info.get_name(), record))
-                new_row.append(value)
-
-            with open(self.get_chunk_path(chunk_id), 'a', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(new_row)
-
-            return OK
-
-        return UNKNOWN
+            size = min(self.max_chunk_size, len(records))
+            status = self.update_chunk(self.get_last_chunk_index(), records[:size])
+            if not status.ok():
+                return INTERNAL
+            records = records[size:]
+        return OK
 
     def destroy_all_chunks(self) -> Status:
         self.logger.warn("deleting all chunks under {}".format(self.table_path))
@@ -204,6 +205,3 @@ class ChunkManager:
 
         self.logger.info("successfully update chunk {}".format(chunk_idx))
         return OK
-
-    def get_iter(self) -> ChunkIterator:
-        return ChunkIterator(self)

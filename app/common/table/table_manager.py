@@ -12,7 +12,6 @@ from app.common.error.status import Status, DUPLICATED_TABLE_CREATION_REQUEST, I
 from app.common.table.metadata import Metadata, load_from_json, save_as_json
 from app.common.table.selector import Selector
 from app.common.table.table import Table
-from app.common.table.chunk_manager import ChunkManager
 from app.services.database.sql.db_factory import DBFactory as SQLDBFactory
 
 
@@ -172,7 +171,10 @@ class TableManager:
         tmp_table_name = constant.TMP_TABLE_PREFIX + str(self.tmp_table_cnt)
         metadata.table_name = tmp_table_name
         self.logger.info("creating temporary table: {}".format(tmp_table_name))
-        return self.create_table(tmp_table_name, metadata)
+        table, status = self.create_table(tmp_table_name, metadata)
+        if status.ok():
+            self.tmp_table_cnt += 1
+        return table,status
 
     def is_tmp_table(self, table_name: str):
         return table_name.startswith(constant.TMP_TABLE_PREFIX)
@@ -181,8 +183,8 @@ class TableManager:
         names, _ = self.load_table_names()
         for name in names:
             if self.is_tmp_table(name):
-                if not self.drop_table(name).ok():
-                    return INTERNAL
+                self._drop_table_on_disk(name)
+        return OK
 
     def start(self) -> Status:
         if self.is_started():
@@ -220,6 +222,9 @@ class TableManager:
     def is_started(self) -> bool:
         return self.state == TableManagerState.RUNNING
 
+    def get_table(self, table_name: str) -> Table | None:
+        return self.table_map[table_name]
+
 
 table_manager_singleton = None
 
@@ -243,26 +248,27 @@ if __name__ == "__main__":
     table, status = tm.create_table("test_table_manager", Metadata("test_table_manager", constant.DB_TYPE_SQL, [{"col1": "int"}, {"col2": "str"}]))
     assert status.ok()
 
-    for i in range(1024):
-        # should all be in first chunk
-        table.insert({"col1": i, "col2": "a"})
-    assert table.chunk_manager.get_chunk_cnt() == 1
+    status = table.insert_bulk([{"col1": i, "col2": "a"} for i in range(1025)])
+    assert status.ok()
+    assert table.chunk_manager.get_chunk_cnt() == 2
     chunk, status = table.chunk_manager.load_chunk(0)
     assert status.ok()
     assert len(chunk) == cfg.max_chunk_size
 
     # should be in the second chunk
-    table.insert({"col1": 2, "col2": "b"})
+    table.insert({"col1": 1025, "col2": "b"})
     assert table.chunk_manager.get_chunk_cnt() == 2
     chunk, status = table.chunk_manager.load_chunk(1)
-    assert len(chunk) == 1
-    assert chunk[0]['col2'] == "b"
+    assert len(chunk) == 2
+    assert chunk[1]['col2'] == "b"
 
+    # test delete
     status = table.delete(Selector({
         "op": "==",
         "v1": "0::col1",
-        "v2": 2
+        "v2": 1025
     }))
     assert status.ok()
     chunk, status = table.chunk_manager.load_chunk(1)
-    assert len(chunk) == 0
+    assert len(chunk) == 1
+
