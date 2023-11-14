@@ -308,13 +308,24 @@ class TableManipulator:
         # check metadata, field_info should be exactly the same:
         if not all(table.metadata.get_all_fields() == tables[0].metadata.get_all_fields() for table in tables):
             raise RuntimeError("only be able to concat tables with the same field_infos")
-        new_table: Table = get_table_manager().create_tmp_table(tables[0].metadata)
+        new_table, status = get_table_manager().create_tmp_table(tables[0].metadata)
+        if not status.ok():
+            raise RuntimeError("failed to create tmp table")
+        new_records = []
         for table in tables:
             for chunk in table.chunk_manager.get_iter():
                 for entry in chunk:
-                    status = new_table.insert(entry)
-                    if not status.ok():
-                        raise RuntimeError("failed to insert new entry to table {}".format(table.name))
+                    new_records.append(entry)
+                    if new_records == config.max_chunk_size:
+                        status = new_table.chunk_manager.dump_bulk(new_records)
+                        if not status.ok():
+                            raise RuntimeError("failed to dump records")
+                        new_records = []
+
+        if len(new_records) != 0:
+            status = new_table.chunk_manager.dump_bulk(new_records)
+            if not status.ok():
+                raise RuntimeError("failed to dump records")
 
         return new_table
 
@@ -412,12 +423,19 @@ if __name__ == "__main__":
     tables = TableManipulator._sort_and_split_on_column(table, SortOption('col1', True, 2))
     freq_list = sorted(Counter(item['col1'] for item in random_data).items())
     assert len(freq_list) == len(tables)
-    i = 0
     for i, pair in enumerate(freq_list):
         entries, status = tables[i].chunk_manager.load_chunk(0)
         assert status.ok()
         assert all(entry['col1'] == pair[0] for entry in entries)
-        i += 1
+
+    # test concat tables
+    new_table_4 = TableManipulator.concat(tables)
+    sorted_random_data = sorted(random_data, key=lambda item: item['col1'])
+    i = 0
+    for chunk in new_table_4.chunk_manager.get_iter():
+        for j, entry in enumerate(chunk):
+            assert entry['col1'] == sorted_random_data[i]['col1']
+            i += 1
 
     # test rename
     table_name = "test_manipulator_rename"
