@@ -335,7 +335,7 @@ if __name__ == "__main__":
     status = table.insert_bulk(random_data)
     assert status.ok()
     # Step 3: Sort the Data
-    table = TableManipulator.sort(table, [SortOption('col1', False, 2)])
+    table = TableManipulator.sort(table, [SortOption('col1', True, 2)])
     # Step 4: Verify the Sort
     # Load each chunk and check if the data is sorted
     for chunk_idx in range(8):  # Assuming 8 chunks as in your example
