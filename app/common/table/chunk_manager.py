@@ -140,11 +140,11 @@ class ChunkManager:
 
     # always append new record to the last chunk
     # if the last chunk is full i.e. len(chunk) == config.chunk_size, then create a new chunk as the last chunk
-    def append(self, record: dict) -> Status:
-        self.append_bulk([record])
+    def dump_one(self, record: dict) -> Status:
+        self.dump_bulk([record])
         return OK
 
-    def append_bulk(self, records: list[dict]) -> Status:
+    def dump_bulk(self, records: list[dict]) -> Status:
         if self.is_empty_table():
             status = self.create_new_chunk()
             if not status.ok():

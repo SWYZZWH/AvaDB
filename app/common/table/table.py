@@ -41,7 +41,7 @@ class Table:
     # record should be a json object
     def insert(self, record: dict) -> Status:
         # self.logger.info("inserting a record {} to table {}".format(record, self.name))
-        status = self.chunk_manager.append(record)
+        status = self.chunk_manager.dump_one(record)
         if not status.ok():
             self.logger.warn("failed to insert record {} to table {}".format(record, self.name))
             return status
@@ -50,7 +50,7 @@ class Table:
 
     def insert_bulk(self, records: list[dict]) -> Status:
         # self.logger.info("inserting a record {} to table {}".format(record, self.name))
-        status = self.chunk_manager.append_bulk(records)
+        status = self.chunk_manager.dump_bulk(records)
         if not status.ok():
             self.logger.warn("failed to insert record #{} to table {}".format(len(records), self.name))
             return status

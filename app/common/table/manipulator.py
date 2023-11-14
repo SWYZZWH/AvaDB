@@ -1,4 +1,5 @@
 import math
+from collections import Counter
 
 import config
 import constant
@@ -7,14 +8,13 @@ import logger as logger
 
 from app.common.context.context import Context
 from app.common.table.chunk_manager import ChunkManager
-from app.common.table.field import extract_column_name
+from app.common.table.field import extract_column_name, FieldInfo
 from app.common.table.metadata import Metadata
 from app.common.table.selector import Selector
 from app.common.table.table import Table
 from app.common.table.table_manager import get_table_manager, TableManager
 from app.services.database.sql.db_factory import DBFactory as SQLDBFactory
 import random
-
 
 
 class SortOption:
@@ -117,8 +117,52 @@ class TableManipulator:
         return new_table
 
     @staticmethod
-    def split_on(src_table: Table, selector: Selector):
-        pass
+    def _sort_and_split_on_column(src_table: Table, sort_option: SortOption) -> list[Table]:
+        """
+        split one sorted table into many tables according to the sorted column
+        all records in any one of the result table have the same value of the column
+        :param src_table:
+        :param column:
+        :return:
+        """
+        tm = get_table_manager()
+        new_table, status = tm.create_tmp_table(src_table.metadata)
+        if not status.ok():
+            raise ValueError("failed to create empty table")
+        tables: list[Table] = [new_table]
+
+        if src_table.chunk_manager.is_empty_table():
+            return tables
+
+        column = sort_option.column
+        sorted_table = TableManipulator.sort(src_table, [sort_option])
+        last_value = sorted_table.chunk_manager.get_fist_chunk()[0][0][column]
+        new_records = []
+        for chunk in sorted_table.chunk_manager.get_iter():
+            for entry in chunk:
+                if last_value != entry[column]:
+                    # dump records
+                    status = tables[-1].chunk_manager.dump_bulk(new_records)
+                    if not status.ok():
+                        raise ValueError("failed to dump bulk")
+                    new_table, status = tm.create_tmp_table(src_table.metadata)
+                    if not status.ok():
+                        raise ValueError("failed to create empty table")
+                    new_records = []
+                    last_value = entry[column]
+                    tables.append(new_table)
+                new_records.append(entry)
+                # dump new_records
+                if len(new_records) == config.max_chunk_size:
+                    status = tables[-1].chunk_manager.dump_bulk(new_records)
+                    if not status.ok():
+                        raise ValueError("failed to dump bulk")
+                    new_records = []
+        if len(new_records) != 0:
+            status = tables[-1].chunk_manager.dump_bulk(new_records)
+            if not status.ok():
+                raise ValueError("failed to dump bulk")
+        return tables
 
     @staticmethod
     def _sort_each_chunk(src_table: Table, column: str, is_asc: bool) -> Table:
@@ -223,6 +267,24 @@ class TableManipulator:
         return TableManipulator._merge_sort(table, ways, column, is_asc)
 
     @staticmethod
+    def rename_fields(src_table: Table, field_rename_map: dict[str, str]) -> Table:
+        for k in field_rename_map:
+            if src_table.metadata.get_field_info(k) is None:
+                raise ValueError("{} is not in table {}".format(k, src_table.name))
+        tm = get_table_manager()
+        new_fields = []
+        for field_info in src_table.metadata.get_all_fields():
+            if field_info.name in field_rename_map:
+                new_fields.append({field_rename_map[field_info.name]: field_info.value_type})
+            else:
+                new_fields.append({field_info.name: field_info.value_type})
+        new_metadata = Metadata(src_table.metadata.table_name, src_table.metadata.db_type, new_fields)
+        new_table, status = tm.create_tmp_table(new_metadata)
+        if not status.ok():
+            raise ValueError("failed to create new tmp table")
+        return new_table
+
+    @staticmethod
     def group_by(src_table: Table, group_by_option: 'GroupByOption') -> Table:
         """
         group by table
@@ -231,6 +293,8 @@ class TableManipulator:
         :return: result table
         """
         # TODO implement it
+        # no need for implementing subquery, it can simply be done by sub query)
+        # 1.
 
     @staticmethod
     def concat(tables: list[Table]) -> Table:
@@ -335,11 +399,30 @@ if __name__ == "__main__":
     status = table.insert_bulk(random_data)
     assert status.ok()
     # Step 3: Sort the Data
-    table = TableManipulator.sort(table, [SortOption('col1', True, 2)])
+    sorted_table = TableManipulator.sort(table, [SortOption('col1', True, 2)])
     # Step 4: Verify the Sort
     # Load each chunk and check if the data is sorted
     for chunk_idx in range(8):  # Assuming 8 chunks as in your example
-        chunk, status = table.chunk_manager.load_chunk(chunk_idx)
+        chunk, status = sorted_table.chunk_manager.load_chunk(chunk_idx)
         assert status.ok()
         sorted_chunk = sorted(chunk, key=lambda x: x['col1'])
         assert chunk == sorted_chunk, f"Chunk {chunk_idx} is not sorted correctly."
+
+    # test sort and split into different tables
+    tables = TableManipulator._sort_and_split_on_column(table, SortOption('col1', True, 2))
+    freq_list = sorted(Counter(item['col1'] for item in random_data).items())
+    assert len(freq_list) == len(tables)
+    i = 0
+    for i, pair in enumerate(freq_list):
+        entries, status = tables[i].chunk_manager.load_chunk(0)
+        assert status.ok()
+        assert all(entry['col1'] == pair[0] for entry in entries)
+        i += 1
+
+    # test rename
+    table_name = "test_manipulator_rename"
+    tm.drop_table(table_name)
+    table, status = tm.create_table(table_name, Metadata(table_name, constant.DB_TYPE_SQL, [{"col1": "int"}, {"col2": "str"}]))
+    new_table_3 = TableManipulator.rename_fields(table, {"col1": "col2", "col2": "col1"})
+    assert new_table_3.metadata.get_all_fields()[0].get_name() == "col2"
+    assert new_table_3.metadata.get_all_fields()[1].get_name() == "col1"
