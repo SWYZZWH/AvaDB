@@ -470,7 +470,7 @@ class TableManipulator:
 
     @staticmethod
     def join(table1: Table, table2: Table, selector: Selector, join_option: 'JoinOption') -> Table:
-        # TODO implement it for nosql, it could be tricky
+        # TODO implement inner join, outer left/right join, handle null elegantly
         """
         support joining two tables only, joining more tables can be supported using subquery in src_tables
         all column will be renamed a -> "A::a"
