@@ -1,7 +1,15 @@
+import csv
+import json
+import os
 import sys
+import tempfile
+
+import constant
 from flask import Flask, g, request, send_file
 
 from app.common.error.status import Status, START_FAILED, OK
+from app.common.query.query_engine import QueryEngine
+from app.common.table.table_manager import TableManager, get_table_manager
 from app.services.database.nosql.db_factory import DBFactory as NosqlDBFactory
 from app.services.database.sql.db_factory import DBFactory as SQLDBFactory
 import config
@@ -19,7 +27,7 @@ app = Flask(__name__)
 @app.route('/')
 def get_file():
     query = request.json
-    result, status = g.ctx.get_db().process(query)
+    result, status = g.ctx.get_db().on_query(query)
 
     if not status.ok():
         return "failed to process query: {}, due to {} ".format(query, status.code()), 400
@@ -28,13 +36,9 @@ def get_file():
         return "query result is empty for query {} ".format(query), 200
 
     result = cast(QueryResult, result)
+    g.ctx.logger.info("result dat can be found under {}".format(result.get_result_file_path()))
 
-    # The response will stream the content of the generator
-    return send_file(
-        result.get_result_file_path(),
-        as_attachment=True,
-        mimetype='text/plain',
-    )
+    return send_file(result.get_result_file_path(), as_attachment=True, mimetype='text/plain')
 
 
 def check_args():
@@ -73,6 +77,11 @@ if __name__ == '__main__':
     db_type = sys.argv[1]
     logger, cfg = logger.get_logger(db_type), config.config_map[db_type]
     ctx = context.Context(logger, cfg, get_db(logger, cfg))
+    tm = get_table_manager(ctx)
+    ctx.set_table_manager(tm)
+    tm.start()
+    qe = QueryEngine(ctx)
+    ctx.set_query_engine(qe)
 
     start_db(ctx)
     app.run(port=ctx.get_cfg().get_port())

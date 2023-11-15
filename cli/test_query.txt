@@ -1,1 +1,16 @@
  {"type":"nosql", "query":{}}
+
+
+ # drop table
+
+ {"type": "sql", "insert": {}}
+
+ # create table
+
+
+ # insert
+  {"type":"sql","insert":{}}
+
+
+ # select
+ {"type":"sql","query":{"src_table":"test_query_engine_select","row_filter":{"op":"&&","v1":{"op":">","v1":"0::col1","v2":1},"v2":{"op":"==","v1":"0::col2","v2":"b"}}}}

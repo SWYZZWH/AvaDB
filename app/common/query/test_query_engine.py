@@ -1,5 +1,4 @@
 import json
-from collections import Counter
 from unittest import TestCase
 import random
 import config
@@ -8,7 +7,6 @@ import logger as mylogger
 
 from app.common.context.context import Context
 from app.common.query.query_engine import QueryEngine
-from app.common.table.manipulator import TableManipulator, SortOption
 from app.common.table.metadata import Metadata
 from app.common.table.table_manager import get_table_manager
 from app.services.database.sql.db_factory import DBFactory as SQLDBFactory

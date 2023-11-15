@@ -9,7 +9,7 @@ from app.common.context.context import Context
 
 from app.common.error.status import Status, FILE_NOT_EXIST, UNKNOWN, UNEXPECTED_EMPTY, UNSUPPORTED, OK, FILE_EXIST, INCONSISTENT
 from app.common.table.field import FieldInfo
-from app.services.database.sql.db_factory import DBFactory as SQLDBFactory
+# from app.services.database.sql.db_factory import DBFactory as SQLDBFactory
 
 
 # Metadata only works for sql
@@ -108,25 +108,26 @@ def save_as_json(metadata: Metadata, ctx: Context) -> Status:
 
 
 if __name__ == "__main__":
-    logger, cfg = logger.get_logger(constant.DB_TYPE_SQL), config.config_map[constant.DB_TYPE_SQL]
-    ctx = Context(logger, cfg, SQLDBFactory.instance())
-
-    print(ctx.get_cfg().get_metadata_dir() + "/test.json")
-    metadata, status = load_from_json(ctx.get_cfg().get_metadata_dir() + "/test.json", ctx)
-    print(status)
-    assert status.ok()
-    print(metadata)
-
-    metadata.table_name = "test2"
-    os.remove(ctx.get_cfg().get_metadata_dir() + "/test2.json")
-    status = save_as_json(metadata, ctx)
-    print(status)
-    assert status.ok()
-
-    metadata2, status = load_from_json(ctx.get_cfg().get_metadata_dir() + "/test2.json", ctx)
-    assert status.ok()
-
-    assert metadata.to_json_obj() == metadata2.to_json_obj()
-
-    assert FieldInfo("a", "b") == FieldInfo("a", "b")
-    assert [FieldInfo("a", "b"), FieldInfo("c", "d")] == [FieldInfo("a", "b"), FieldInfo("c", "d")]
+    pass
+    # logger, cfg = logger.get_logger(constant.DB_TYPE_SQL), config.config_map[constant.DB_TYPE_SQL]
+    # ctx = Context(logger, cfg, SQLDBFactory.instance())
+    #
+    # print(ctx.get_cfg().get_metadata_dir() + "/test.json")
+    # metadata, status = load_from_json(ctx.get_cfg().get_metadata_dir() + "/test.json", ctx)
+    # print(status)
+    # assert status.ok()
+    # print(metadata)
+    #
+    # metadata.table_name = "test2"
+    # os.remove(ctx.get_cfg().get_metadata_dir() + "/test2.json")
+    # status = save_as_json(metadata, ctx)
+    # print(status)
+    # assert status.ok()
+    #
+    # metadata2, status = load_from_json(ctx.get_cfg().get_metadata_dir() + "/test2.json", ctx)
+    # assert status.ok()
+    #
+    # assert metadata.to_json_obj() == metadata2.to_json_obj()
+    #
+    # assert FieldInfo("a", "b") == FieldInfo("a", "b")
+    # assert [FieldInfo("a", "b"), FieldInfo("c", "d")] == [FieldInfo("a", "b"), FieldInfo("c", "d")]

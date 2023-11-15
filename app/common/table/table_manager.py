@@ -174,7 +174,7 @@ class TableManager:
         table, status = self.create_table(tmp_table_name, metadata)
         if status.ok():
             self.tmp_table_cnt += 1
-        return table,status
+        return table, status
 
     def is_tmp_table(self, table_name: str):
         return table_name.startswith(constant.TMP_TABLE_PREFIX)
@@ -217,6 +217,7 @@ class TableManager:
             self.table_map[name] = Table(table_name=name, metadata=metadata, ctx=self.ctx)
 
         self.state = TableManagerState.RUNNING
+        self.logger.info("table manager started successfully")
         return OK
 
     def is_started(self) -> bool:
@@ -271,4 +272,3 @@ if __name__ == "__main__":
     assert status.ok()
     chunk, status = table.chunk_manager.load_chunk(1)
     assert len(chunk) == 1
-

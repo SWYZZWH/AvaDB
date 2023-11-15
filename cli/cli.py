@@ -88,7 +88,7 @@ def main():
                 logger.error("Invalid user input: {}".format(user_input))
                 continue
             cfg = get_cfg(request_json)
-            tmp_file = download_file('http://localhost:{}'.format(cfg.get_port()), request_json.get(constant.REQUEST_KEY_QUERY))
+            tmp_file = download_file('http://localhost:{}'.format(cfg.get_port()), json.dumps(request_json.get(constant.REQUEST_KEY_QUERY)))
             if tmp_file == "":
                 print("Get result from database failed")
                 continue

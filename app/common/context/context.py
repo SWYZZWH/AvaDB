@@ -7,14 +7,18 @@ if TYPE_CHECKING:
 if TYPE_CHECKING:
     from app.common.table.table_manager import TableManager
 
+if TYPE_CHECKING:
+    from app.common.query.query_engine import QueryEngine
+
 
 class Context:
 
-    def __init__(self, logger, cfg: DBConfig, db: 'DBInterface', table_manager: 'TableManager' = None):
+    def __init__(self, logger, cfg: DBConfig, db: 'DBInterface', table_manager: 'TableManager' = None, query_engine: 'QueryEngine' = None):
         self.logger = logger
         self.cfg = cfg
         self.db = db
         self.table_manager = table_manager
+        self.qe = query_engine
 
     def get_cfg(self) -> DBConfig:
         return self.cfg
@@ -30,3 +34,6 @@ class Context:
 
     def set_table_manager(self, table_manager: 'TableManager'):
         self.table_manager = table_manager
+
+    def set_query_engine(self, query_engine: 'QueryEngine'):
+        self.qe = query_engine

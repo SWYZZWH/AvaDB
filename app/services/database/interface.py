@@ -1,15 +1,15 @@
-from app.common.context.context import Context
+# from app.common.context.context import Context
 from app.common.error.status import Status
 from app.common.query.result import QueryResult
 
 
 class DBInterface:
 
-    def start(self, ctx: Context) -> Status:
+    def start(self, ctx) -> Status:
         pass
 
     # query is a json string
-    def process(self, query: str) -> (QueryResult | None, Status):
+    def on_query(self, query: str) -> (QueryResult | None, Status):
         pass
 
 
