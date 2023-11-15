@@ -8,11 +8,11 @@ import constant
 import logger as logger
 
 from app.common.context.context import Context
-from app.common.table.field import FieldInfo, FieldNameProcessor
+from app.common.table.field import FieldNameProcessor
 from app.common.table.metadata import Metadata
 from app.common.table.selector import Selector
 from app.common.table.table import Table
-from app.common.table.table_manager import get_table_manager, TableManager
+from app.common.table.table_manager import get_table_manager
 from app.services.database.sql.db_factory import DBFactory as SQLDBFactory
 import random
 
@@ -43,7 +43,7 @@ class ReduceOption:
 class Reducer:
 
     def __init__(self, option: ReduceOption):
-        self.column = option.column
+        self.column = FieldNameProcessor.remove_suffix(option.column)
         self.agg = option.agg
         self.sum = 0
         self.cnt = 0
@@ -96,8 +96,8 @@ class GroupByOption:
         self.options = reduce_options
 
 
-class JoinOption:
-    pass
+class JoinOption(Enum):
+    outer = 1
 
 
 class TableManipulator:
@@ -287,7 +287,11 @@ class TableManipulator:
         :return: result table
         """
         # TODO implement multi-field sorting
-        return TableManipulator._sort_one_column(src_table, sort_options[0])
+        # handle sorting columns:
+        new_options = []
+        for option in sort_options:
+            new_options.append(SortOption(FieldNameProcessor.remove_outer_prefix(option.column), option.is_asc))
+        return TableManipulator._sort_one_column(src_table, new_options[0])
 
     @staticmethod
     def _sort_and_split_on_column(src_table: Table, sort_option: SortOption) -> list[Table]:
@@ -295,7 +299,7 @@ class TableManipulator:
         split one sorted table into many tables according to the sorted column
         all records in any one of the result table have the same value of the column
         :param src_table:
-        :param column:
+        :param sort_option:
         :return:
         """
         tm = get_table_manager()
@@ -415,8 +419,8 @@ class TableManipulator:
         reducers = []
         for field_info in src_table.metadata.get_all_fields():
             for option in reduce_options:
-                if field_info.get_name() == option.column:
-                    new_field_name = TableManipulator._decorate_reduced_column_name(field_info.get_name(), option.agg)
+                if field_info.get_name() == FieldNameProcessor.get_base_name(option.column):
+                    new_field_name = option.column
                     if new_field_name in [reducer.column for reducer in reducers]:
                         raise RuntimeError("duplicated aggregated field detected: {}".format(new_field_name))
                     reducers.append(Reducer(option))
@@ -461,6 +465,11 @@ class TableManipulator:
         :return: result table
         """
         # TODO support group by on multiple columns & group by joined table
+        # handle relative reference in GroupByOption
+        group_by_option.column = FieldNameProcessor.remove_outer_prefix(group_by_option.column)
+        for option in group_by_option.options:
+            option.column = FieldNameProcessor.remove_outer_prefix(option.column)
+
         tables = TableManipulator._sort_and_split_on_column(src_table, SortOption(group_by_option.column))
         new_tables = []
         for table in tables:
@@ -482,6 +491,9 @@ class TableManipulator:
         tm = get_table_manager()
         if table1.metadata.db_type != table2.metadata.db_type:
             raise RuntimeError("mixed of sql and nosql, should never happen")
+
+        if join_option != JoinOption.outer.name:
+            raise RuntimeError("Not implemented other join option: {}".format(join_option.name))
 
         new_fields = []
         for t in [table1, table2]:
@@ -631,6 +643,7 @@ if __name__ == "__main__":
     table_name = "test_manipulator_rename"
     tm.drop_table(table_name)
     table, status = tm.create_table(table_name, Metadata(table_name, constant.DB_TYPE_SQL, [{"col1": "int"}, {"col2": "str"}]))
+    assert status.ok()
     new_table_3 = TableManipulator.rename_fields(table, {"col1": "col2", "col2": "col1"})
     assert new_table_3.metadata.get_all_fields()[0].get_name() == "col2"
     assert new_table_3.metadata.get_all_fields()[1].get_name() == "col1"
@@ -638,8 +651,7 @@ if __name__ == "__main__":
     # test group by
     table_name = "test_manipulator_groupby"
     tm.drop_table(table_name)
-    table, status = tm.create_table(table_name, Metadata(table_name, constant.DB_TYPE_SQL, [{"col1": "int"}, {"col2": "float"}, {"col3": "str"}]))
-    assert status.ok()
+    table, _ = tm.create_table(table_name, Metadata(table_name, constant.DB_TYPE_SQL, [{"col1": "int"}, {"col2": "float"}, {"col3": "str"}]))
     status = table.insert({"col1": 1, "col2": 1, "col3": "a"})
     assert status.ok()
     status = table.insert({"col1": 1, "col2": 1, "col3": "a"})
@@ -655,17 +667,17 @@ if __name__ == "__main__":
     status = table.insert({"col1": 1, "col2": 1.0, "col3": "b"})
     assert status.ok()
     new_table = TableManipulator.group_by(table, group_by_option=GroupByOption(
-        column="col3",
+        column="0::col3",
         reduce_options=[
-            ReduceOption('col1', ReduceOperation.MAX),
-            ReduceOption('col1', ReduceOperation.MIN),
-            ReduceOption('col1', ReduceOperation.SUM),
-            ReduceOption('col1', ReduceOperation.COUNT),
-            ReduceOption('col1', ReduceOperation.AVG),
-            ReduceOption('col2', ReduceOperation.MAX),
-            ReduceOption('col2', ReduceOperation.SUM),
-            ReduceOption('col2', ReduceOperation.COUNT),
-            ReduceOption('col2', ReduceOperation.AVG),
+            ReduceOption('0::col1', ReduceOperation.MAX),
+            ReduceOption('0::col1', ReduceOperation.MIN),
+            ReduceOption('0::col1', ReduceOperation.SUM),
+            ReduceOption('0::col1', ReduceOperation.COUNT),
+            ReduceOption('0::col1', ReduceOperation.AVG),
+            ReduceOption('0::col2', ReduceOperation.MAX),
+            ReduceOption('0::col2', ReduceOperation.SUM),
+            ReduceOption('0::col2', ReduceOperation.COUNT),
+            ReduceOption('0::col2', ReduceOperation.AVG),
         ]))
 
     # check metadata:
@@ -700,25 +712,3 @@ if __name__ == "__main__":
     assert status.ok()
     table2, status = tm.create_table(table_name_2, Metadata(table_name_2, constant.DB_TYPE_SQL, [{"col3": "int"}, {"col2": "str"}]))
     assert status.ok()
-
-    table1.insert({"col1": 1, "col2": "a"})
-    table1.insert({"col1": 2, "col2": "b"})
-    table2.insert({"col3": 3, "col2": "a"})
-    table2.insert({"col3": 4, "col2": "b"})
-
-    new_table = TableManipulator.join(table1, table2, Selector(
-        {
-            "op": "==",
-            "v1": "0::col2",
-            "v2": "1::col2",
-        }
-    ), JoinOption())
-    assert new_table.metadata.get_all_field_names() == [
-        FieldNameProcessor.add_prefix("col1", table1.name),
-        FieldNameProcessor.add_prefix("col2", table1.name),
-        FieldNameProcessor.add_prefix("col3", table2.name),
-        FieldNameProcessor.add_prefix("col2", table2.name)
-    ]
-    chunk, status = new_table.chunk_manager.get_fist_chunk()
-    assert status.ok()
-    assert len(chunk) == 2

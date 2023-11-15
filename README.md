@@ -115,3 +115,109 @@ V2
 
 1. duplicated table names
 2. invalid table names
+
+### Query Examples
+
+1. projection
+
+```json
+{
+  "src_table": "A",
+  "desired_columns": "::a"
+}
+```
+
+2. sorting
+
+```json
+{
+  "src_table": "A",
+  "order_by": [
+    {
+      "column": "::a",
+      "is_asc": true
+    }
+  ]
+}
+```
+
+3. filtering
+
+```json
+{
+  "src_table": "A",
+  "row_filter": {
+    "op": "&&",
+    "v1": {
+      "op": ">",
+      "v1": "::a",
+      "v2": 8.5
+    },
+    "v2": {
+      "op": "==",
+      "v1": "::b",
+      "v2": "Yes"
+    }
+  }
+}
+```
+
+4. group by & aggregation
+
+```json
+{
+  "src_table": "A",
+  "group_by": [
+    "::a"
+  ],
+  "desired_columns": [
+    "::a",
+    "::b_MAX"
+  ]
+}
+```
+
+5.join
+
+```json
+{
+  "src_table": {
+    "t1": "A",
+    "t2": "B",
+    "join_type": "outer",
+    "join_condition": {
+      "op": "&&",
+      "v1": {
+        "op": ">",
+        "v1": "0::a",
+        "v2": 8.5
+      },
+      "v2": {
+        "op": "==",
+        "v1": "1::b",
+        "v2": "Yes"
+      }
+    }
+  },
+  "desired_columns": [
+    "::0::a",
+    "::0::b"
+  ]
+}
+```
+
+6. subquery
+
+```json
+{
+  "src_table": {
+    "src_table": "A",
+    "desired_columns": [
+      "::a"
+    ]
+  },
+  "desired_columns": [
+    "::0::a"
+  ]
+}
+```

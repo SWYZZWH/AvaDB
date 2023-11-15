@@ -1,4 +1,4 @@
-from app.common.error.status import Status, INTERNAL, INVALID_ARGUMENT, TYPE_ERROR
+from app.common.error.status import Status, INTERNAL, INVALID_ARGUMENT, TYPE_ERROR, OK
 from app.common.query.expression_tree import ExprTree
 
 
@@ -22,3 +22,19 @@ class Selector:
         if type(res) is not bool:
             return False, TYPE_ERROR
         return res, status
+
+
+class AlwaysTrueSelector(Selector):
+
+    def is_match(self, entries: list) -> (bool, Status):
+        return True, OK
+
+
+class AlwaysFalseSelector(Selector):
+
+    def is_match(self, entries: list) -> (bool, Status):
+        return False, OK
+
+
+def get_always_true_selector():
+    return Selector()

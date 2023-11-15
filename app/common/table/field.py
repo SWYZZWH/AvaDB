@@ -32,12 +32,16 @@ class FieldNameProcessor:
         suffix: used for group by aggregators including min,max,sum,avg,count. "__" is used for separator, e.g. a__AVG, a__COUNT
     """
 
-    # @staticmethod
-    # def get_suffix(name: str) -> str:
-    #     return name.split(constant.REDUCED_COLUMN_NAME_SEP)[-1]
+    @staticmethod
+    def get_suffix(name: str) -> str:
+        if constant.REDUCED_COLUMN_NAME_SEP not in name:
+            return ""
+        return name.split(constant.REDUCED_COLUMN_NAME_SEP)[-1]
 
     @staticmethod
     def get_prefix(name: str) -> str:
+        if constant.QUERY_FIELD_REF_SYM not in name:
+            return ""
         return constant.QUERY_FIELD_REF_SYM.join(name.split(constant.QUERY_FIELD_REF_SYM)[:-1])
 
     @staticmethod
@@ -46,11 +50,34 @@ class FieldNameProcessor:
 
     @staticmethod
     def remove_outer_prefix(name: str) -> str:
+        if constant.QUERY_FIELD_REF_SYM not in name:
+            return name
         return constant.QUERY_FIELD_REF_SYM.join(name.split(constant.QUERY_FIELD_REF_SYM)[1:])
 
     @staticmethod
+    def get_inner_prefix(name: str) -> str:
+        if constant.QUERY_FIELD_REF_SYM not in name:
+            return ""
+        return FieldNameProcessor.get_prefix(FieldNameProcessor.remove_outer_prefix(name))
+
+    @staticmethod
+    def replace_inner_prefix(name: str, new_inner_prefix: str) -> str:
+        if constant.QUERY_FIELD_REF_SYM not in name:
+            return name
+
+        return FieldNameProcessor.add_prefix(FieldNameProcessor.add_prefix(FieldNameProcessor.get_base_name(name), new_inner_prefix), FieldNameProcessor.get_outer_prefix(name))
+
+    @staticmethod
     def remove_prefix(name: str) -> str:
+        if constant.QUERY_FIELD_REF_SYM not in name:
+            return name
         return name.split(constant.QUERY_FIELD_REF_SYM)[-1]
+
+    @staticmethod
+    def remove_suffix(name: str) -> str:
+        if constant.REDUCED_COLUMN_NAME_SEP not in name:
+            return name
+        return name.split(constant.REDUCED_COLUMN_NAME_SEP)[0]
 
     @staticmethod
     def get_base_name(name: str) -> str:
@@ -58,6 +85,8 @@ class FieldNameProcessor:
 
     @staticmethod
     def get_outer_prefix(name: str) -> str:
+        if constant.QUERY_FIELD_REF_SYM not in name:
+            return ""
         return name.split(constant.QUERY_FIELD_REF_SYM)[0]
 
 
