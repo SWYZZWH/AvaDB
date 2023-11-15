@@ -2,6 +2,7 @@ import constant
 
 from app.common.error.status import Status, INVALID_ARGUMENT, UNSUPPORTED, OK, NOT_IMPLEMENTED, INTERNAL, CALCULATE_PARAM_TYPE_ERROR
 from app.common.query.operators import operator_map, Operator
+from app.common.table.field import FieldNameProcessor
 
 
 class RuntimeRef:
@@ -98,11 +99,7 @@ class ExprTree:
         if type(field) is not str or constant.QUERY_FIELD_REF_SYM not in field:
             return LiteralNode(field), OK
 
-        field_components = field.split(constant.QUERY_FIELD_REF_SYM)
-        if len(field_components) != 2:
-            return None, INVALID_ARGUMENT
-
-        table, field_name = field_components[0], field_components[1]
+        table, field_name = FieldNameProcessor.get_outer_prefix(field), FieldNameProcessor.remove_outer_prefix(field)
         if not self.check_table_ref(table):
             return None, INVALID_ARGUMENT
 
@@ -127,7 +124,7 @@ class ExprTree:
         val1_obj = self.expr[constant.QUERY_VAR1_KEY]
         # if val1_obj is None:
         #     return None, INVALID_ARGUMENT
-        node1 = ExprTree(val1_obj)
+        node1 = ExprTree(val1_obj).root
         node.append_child(node1)
 
         if operator.get_param_cnt() == 2:

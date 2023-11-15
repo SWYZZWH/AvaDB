@@ -7,6 +7,7 @@ class Selector:
     def __init__(self, expression: any):
         """
         return True only when the expression is True
+        use relative prefix
         :param expression: expression object in json format
         """
         self.expression = expression

@@ -8,8 +8,7 @@ import constant
 import logger as logger
 
 from app.common.context.context import Context
-from app.common.table.chunk_manager import ChunkManager
-from app.common.table.field import extract_column_name, FieldInfo
+from app.common.table.field import FieldInfo, FieldNameProcessor
 from app.common.table.metadata import Metadata
 from app.common.table.selector import Selector
 from app.common.table.table import Table
@@ -97,6 +96,10 @@ class GroupByOption:
         self.options = reduce_options
 
 
+class JoinOption:
+    pass
+
+
 class TableManipulator:
     """
     TableManipulator is responsible for implementing all query logics
@@ -153,7 +156,7 @@ class TableManipulator:
             raise RuntimeError("unable to project duplicated columns {}, which is not existed".format(desired_column))
 
         for col_name in desired_column:
-            extracted_name = extract_column_name(col_name)
+            extracted_name = FieldNameProcessor.remove_outer_prefix(col_name)
             if extracted_name not in src_table.metadata.get_all_field_names():
                 raise RuntimeError("failed to project column {}, which is not existed".format(extracted_name))
             new_field_info.append({extracted_name: src_table.metadata.get_field_type(extracted_name)})
@@ -466,9 +469,60 @@ class TableManipulator:
         return TableManipulator._concat(new_tables)
 
     @staticmethod
-    def join(tables: list[Table], join_option: 'JoinOption') -> Table:
-        # TODO implement it
-        pass
+    def join(table1: Table, table2: Table, selector: Selector, join_option: 'JoinOption') -> Table:
+        # TODO implement it for nosql, it could be tricky
+        """
+        support joining two tables only, joining more tables can be supported using subquery in src_tables
+        all column will be renamed a -> "A::a"
+        :param table1: table on the left
+        :param table2: table on the right
+        :param join_option: support outer join (which is by default), left outer join, right outer join, full outer join, inner join, no
+        :return:
+        """
+        tm = get_table_manager()
+        if table1.metadata.db_type != table2.metadata.db_type:
+            raise RuntimeError("mixed of sql and nosql, should never happen")
+
+        new_fields = []
+        for t in [table1, table2]:
+            for field in t.metadata.get_all_fields():
+                new_fields.append({FieldNameProcessor.add_prefix(field.get_name(), t.name): field.get_value_type()})
+
+        metadata = Metadata(table1.name, table1.metadata.db_type, new_fields)
+        new_table, status = tm.create_tmp_table(metadata)
+        if not status.ok():
+            raise RuntimeError("failed to create tmp table")
+
+        def build_join_record(table_name, entry) -> dict:
+            res = {}
+            for k, v in entry.items():
+                res[FieldNameProcessor.add_prefix(k, table_name)] = v
+            return res
+
+        new_records = []
+        for chunk1 in table1.chunk_manager.get_iter():
+            for chunk2 in table2.chunk_manager.get_iter():
+                for entry1 in chunk1:
+                    for entry2 in chunk2:
+                        match, status = selector.is_match([entry1, entry2])
+                        if not status.ok():
+                            raise RuntimeError("failed to compare entries: {}".format([entry1, entry2]))
+                        if match:
+                            d = build_join_record(table1.name, entry1)
+                            d.update(build_join_record(table2.name, entry2))
+                            new_records.append(d)
+                            if len(new_records) == config.max_chunk_size:
+                                status = new_table.dump_bulk(new_records)
+                                if not status.ok():
+                                    raise RuntimeError("failed to dump records")
+                                new_records = []
+
+        if len(new_records) != 0:
+            status = new_table.chunk_manager.dump_bulk(new_records)
+            if not status.ok():
+                raise RuntimeError("failed to dump records")
+
+        return new_table
 
 
 if __name__ == "__main__":
@@ -638,3 +692,33 @@ if __name__ == "__main__":
     assert chunk[1]['col2__COUNT'] == 3
     assert chunk[1]['col2__AVG'] == 1
 
+    # test join
+    table_name_1, table_name_2 = "test_manipulator_join_1", "test_manipulator_join_2"
+    tm.drop_table(table_name_1)
+    tm.drop_table(table_name_2)
+    table1, status = tm.create_table(table_name_1, Metadata(table_name_1, constant.DB_TYPE_SQL, [{"col1": "int"}, {"col2": "str"}]))
+    assert status.ok()
+    table2, status = tm.create_table(table_name_2, Metadata(table_name_2, constant.DB_TYPE_SQL, [{"col3": "int"}, {"col2": "str"}]))
+    assert status.ok()
+
+    table1.insert({"col1": 1, "col2": "a"})
+    table1.insert({"col1": 2, "col2": "b"})
+    table2.insert({"col3": 3, "col2": "a"})
+    table2.insert({"col3": 4, "col2": "b"})
+
+    new_table = TableManipulator.join(table1, table2, Selector(
+        {
+            "op": "==",
+            "v1": "0::col2",
+            "v2": "1::col2",
+        }
+    ), JoinOption())
+    assert new_table.metadata.get_all_field_names() == [
+        FieldNameProcessor.add_prefix("col1", table1.name),
+        FieldNameProcessor.add_prefix("col2", table1.name),
+        FieldNameProcessor.add_prefix("col3", table2.name),
+        FieldNameProcessor.add_prefix("col2", table2.name)
+    ]
+    chunk, status = new_table.chunk_manager.get_fist_chunk()
+    assert status.ok()
+    assert len(chunk) == 2
