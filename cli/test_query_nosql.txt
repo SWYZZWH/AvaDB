@@ -1,0 +1,53 @@
+# drop table
+{"type": "nosql", "drop": {"table_name": "test_cli"}}
+
+# create table
+{"type": "nosql", "create": {"table_name": "test_cli"}}
+
+# insert
+{"type":"nosql", "insert": {"table_name": "test_cli", "records": [{"col1": {"col3": 1}, "col2": "a"}, {"col1": {"col3": 3}, "col2": "a"}, {"col1": {"col3": 1}, "col2": "b"}, {"col1": {"col3": 2}, "col2": "b"}, {"col1": {"col3": 1}, "col2": "c"}, {"col1": {"col3": 1}, "col2": "c"}]}}
+
+# delete (1, a)
+{"type":"nosql", "delete": {"table_name": "test_cli", "expr": {"op":"&&","v1":{"op":"==","v1":"0::col1..col3","v2":1},"v2":{"op":"==","v1":"0::col2","v2":"a"}}}}
+
+# select (get all records)
+{"type":"nosql","query":{"src_table":"test_cli","row_filter":{"op":">","v1":"0::col1..col3","v2":-100}}}
+
+# insert (1, a) back
+{"type":"nosql", "insert": {"table_name": "test_cli", "records": [{"col1..col3": 1, "col2": "a"}]}}
+
+# select (get all records)
+{"type":"nosql","query":{"src_table":"test_cli","row_filter":{"op":">","v1":"0::col1..col3","v2":-100}}}
+
+
+# projection (get all records)
+{"type":"nosql","query":{"src_table":"test_cli","row_filter":{"op":">","v1":"0::col1..col3","v2":-100}, "desired_columns": ["::col1..col3"]}}
+
+# select (should return (2, b))
+{"type":"nosql","query":{"src_table":"test_cli","row_filter":{"op":"&&","v1":{"op":">","v1":"0::col1..col3","v2":1},"v2":{"op":"==","v1":"0::col2","v2":"b"}}}}
+
+# update record (2, b) -> (10, b)
+{"type":"nosql","update":{"table_name":"test_cli","expr":{"op":"&&","v1":{"op":">","v1":"0::col1..col3","v2":1},"v2":{"op":"==","v1":"0::col2","v2":"b"}}, "record": {"col1":{"col3":10},"col2":"b"}}}
+
+# select (now will return empty)
+{"type":"nosql","query":{"src_table":"test_cli","row_filter":{"op":"&&","v1":{"op":"==","v1":"0::col1..col3","v2":2},"v2":{"op":"==","v1":"0::col2","v2":"b"}}}}
+
+# group by col2 & aggregation
+{"type":"nosql","query":{"src_table":"test_cli","desired_columns":["::col2","::col1..col3__MAX","::col1..col3__MIN","::col1..col3__COUNT","::col1..col3__SUM","::col1..col3__AVG"],"group_by":["::col2"]}}
+
+# sorting
+{"type":"nosql","query":{"src_table":"test_cli","order_by":[{"column":"::col1..col3","is_asc":true}]}}
+{"type":"nosql","query":{"src_table":"test_cli","order_by":[{"column":"::col2","is_asc":false}]}}
+
+# join
+{"type": "nosql", "drop": {"table_name": "test_cli_2"}}
+{"type": "nosql", "create": {"table_name": "test_cli_2"}}
+{"type":"nosql", "insert": {"table_name": "test_cli_2", "records": [{"col3": 5, "col2": "a"}, {"col3": 6, "col2": "b"}]}}
+{"type":"nosql","query":{"src_table":{"t1":"test_cli","t2":"test_cli_2","join_type":"outer","join_condition":{"op":"==","v1":"0::col2","v2":"0::col2"}},"desired_columns":["::0::col1..col3","::0::col2","::1::col2","::1::col3"]}}
+
+# drop table
+{"type": "nosql", "drop": {"table_name": "test_cli"}}
+
+# select (get all records, no results)
+{"type":"nosql","query":{"src_table":"test_cli","row_filter":{"op":">","v1":"0::col1..col3","v2":-100}}}
+

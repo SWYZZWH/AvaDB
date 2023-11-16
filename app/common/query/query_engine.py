@@ -51,9 +51,14 @@ class QueryEngine:
             left_table, right_table = src_table[constant.QUERY_JOIN_TABLE_LEFT_KEY], src_table[constant.QUERY_JOIN_TABLE_RIGHT_KEY]
             self.logger.info("multiple src tables are detected, try to join them: {}".format([left_table, right_table]))
             l, r = self.tm.get_table(left_table), self.tm.get_table(right_table)
+            l_chunk, _ = l.chunk_manager.get_fist_chunk()
+            r_chunk, _ = r.chunk_manager.get_fist_chunk()
+            self.prefix_map["0"], self.prefix_map["1"] = l.name, r.name
+            if FieldNameProcessor.get_prefix(list(l_chunk[0].keys())[0]) != "":
+                self.prefix_map["0"] = FieldNameProcessor.add_prefix(FieldNameProcessor.get_prefix(list(l_chunk[0].keys())[0]), l.name)
+            if FieldNameProcessor.get_prefix(list(r_chunk[0].keys())[0]) != "":
+                self.prefix_map["1"] = FieldNameProcessor.add_prefix(FieldNameProcessor.get_prefix(list(r_chunk[0].keys())[0]), r.name)
             res: Table = TableManipulator.join(l, r, Selector(src_table[constant.QUERY_JOIN_CONDITION_KEY]), src_table[constant.QUERY_JOIN_TYPE_KEY])
-            l_info, r_info = res.metadata.get_all_field_names()[0], res.metadata.get_all_field_names()[-1]
-            self.prefix_map["0"], self.prefix_map["1"] = FieldNameProcessor.get_prefix(l_info), FieldNameProcessor.get_prefix(r_info)
             return res, OK
 
         table, status = self.handle_sub_query(src_table)

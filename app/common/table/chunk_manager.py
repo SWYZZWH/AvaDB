@@ -107,16 +107,15 @@ class ChunkManager:
             # Load a JSON file
             with open(chunk_path, 'r') as file:
                 data = json.load(file)
-            self.logger.info("load trunk {} for sql  successfully".format(chunk_idx))
+            self.logger.info("load trunk {} for nosql successfully".format(chunk_idx))
             return data, OK
         elif self.db_type == constant.DB_TYPE_SQL:
             # Load a CSV file and convert each row to a dictionary
             with open(chunk_path, 'r') as file:
                 reader = csv.reader(file)
                 data = [row_to_object(row, self.metadata) for row in reader]
-            self.logger.info("load trunk {} for nosql  successfully".format(chunk_idx))
+            self.logger.info("load trunk {} for sql successfully".format(chunk_idx))
             return data, OK
-
 
         return [], UNKNOWN
 
@@ -127,8 +126,8 @@ class ChunkManager:
             return FILE_EXIST
 
         with open(new_chunk_path, "w") as f:
-            # simply create a new file
-            pass
+            if self.cfg.is_nosql():
+                f.write("[]")
         self.total_chunks += 1
         return OK
 
@@ -199,8 +198,6 @@ class ChunkManager:
 
         elif self.cfg.is_nosql():
             with open(self.get_chunk_path(chunk_idx), 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerows(chunk)
                 json.dump(chunk, f)
 
         self.logger.info("successfully update chunk {}".format(chunk_idx))

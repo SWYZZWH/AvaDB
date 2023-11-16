@@ -37,7 +37,7 @@ def get_file():
 def insert():
     status = g.ctx.get_db().on_insert(request.json)
     if not status.ok():
-        return status.msg(), 400
+        return status.msg, 400
     return "ok", 200
 
 
@@ -45,7 +45,7 @@ def insert():
 def update():
     status = g.ctx.get_db().on_update(request.json)
     if not status.ok():
-        return status.msg(), 400
+        return status.msg, 400
     return "ok", 200
 
 
@@ -53,7 +53,7 @@ def update():
 def delete():
     status = g.ctx.get_db().on_delete(request.json)
     if not status.ok():
-        return status.msg(), 400
+        return status.msg, 400
     return "ok", 200
 
 
@@ -61,7 +61,7 @@ def delete():
 def drop():
     status = g.ctx.get_db().on_drop(request.json)
     if not status.ok():
-        return status.msg(), 400
+        return status.msg, 400
     return "ok", 200
 
 

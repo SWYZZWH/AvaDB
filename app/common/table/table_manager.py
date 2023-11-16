@@ -132,7 +132,7 @@ class TableManager:
 
     def create_table(self, table_name: str, metadata: Metadata) -> (Table | None, Status):
         if not self.is_started():
-            return START_FAILED
+            return None, START_FAILED
 
         if table_name in self.table_map:
             self.logger.error("the table {} is already existed, failed to recreate".format(table_name))
@@ -149,7 +149,7 @@ class TableManager:
             self.logger.error("failed to create new table {}".format(table_name))
             # on failed, we must destroy the dirs on the disk!
             self._drop_table_on_disk(table_name)
-            return INTERNAL
+            return None, INTERNAL
 
         return table, OK
 

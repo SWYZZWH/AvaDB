@@ -151,25 +151,29 @@ class TableManipulator:
         :return: temporary table
         """
         table_manger = get_table_manager()
-        new_field_info = []
         if len(desired_column) != len(set(desired_column)):
             raise RuntimeError("unable to project duplicated columns {}, which is not existed".format(desired_column))
-
+        new_column_names = []
+        new_field_info = []
         for col_name in desired_column:
             extracted_name = FieldNameProcessor.remove_outer_prefix(col_name)
-            if extracted_name not in src_table.metadata.get_all_field_names():
-                raise RuntimeError("failed to project column {}, which is not existed".format(extracted_name))
-            new_field_info.append({extracted_name: src_table.metadata.get_field_type(extracted_name)})
-
+            new_column_names.append(extracted_name)
+            if src_table.metadata.db_type == constant.DB_TYPE_SQL:
+                new_field_info.append({extracted_name: src_table.metadata.get_field_type(extracted_name)})
         new_metadata = Metadata(src_table.name, src_table.metadata.db_type, new_field_info)
         new_table, status = table_manger.create_tmp_table(new_metadata)
+
         if not status.ok():
             raise RuntimeError("failed to create new tmp table")
 
         new_records = []
         for chunk in src_table.chunk_manager.get_iter():
             for entry in chunk:
-                new_records.append(entry)
+                new_entry = {}
+                for column in new_column_names:
+                    if column in entry:
+                        new_entry[column] = entry[column]
+                new_records.append(new_entry)
                 if len(new_records) >= config.max_chunk_size:
                     status = new_table.insert_bulk(new_records)
                     if not status.ok():
@@ -417,16 +421,13 @@ class TableManipulator:
         # max(col) will be renamed as MAX_col
         new_fields = [{group_by_column: src_table.metadata.get_field_type(group_by_column)}]
         reducers = []
-        for field_info in src_table.metadata.get_all_fields():
-            for option in reduce_options:
-                if field_info.get_name() == FieldNameProcessor.get_base_name(option.column):
-                    new_field_name = option.column
-                    if new_field_name in [reducer.column for reducer in reducers]:
-                        raise RuntimeError("duplicated aggregated field detected: {}".format(new_field_name))
-                    reducers.append(Reducer(option))
-                    # TODO handle potential type transferring e.g. int -> float
-                    # TODO compatible with nosql
-                    new_fields.append({new_field_name: 'float'})
+        for option in reduce_options:
+            new_field_name = option.column
+            if new_field_name in [reducer.column for reducer in reducers]:
+                raise RuntimeError("duplicated aggregated field detected: {}".format(new_field_name))
+            reducers.append(Reducer(option))
+            # TODO handle potential type transferring e.g. int -> float
+            new_fields.append({new_field_name: 'float'})
         new_table, status = tm.create_tmp_table(Metadata(src_table.metadata.table_name, src_table.metadata.db_type, new_fields))
         if not status.ok():
             raise RuntimeError("can't create tmp table")
@@ -440,8 +441,8 @@ class TableManipulator:
         if not status.ok():
             raise RuntimeError("can't load src table")
         new_record = {group_by_column: chunk[0][group_by_column]}
-        for i, field_info in enumerate(new_table.metadata.get_all_fields()[1:]):
-            new_record[field_info.name] = reducers[i].reduce()
+        for i, field_info in enumerate(new_fields[1:]):
+            new_record[list(field_info.keys())[0]] = reducers[i].reduce()
 
         status = new_table.chunk_manager.dump_one(new_record)
         if not status.ok():

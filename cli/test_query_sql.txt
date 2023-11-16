@@ -1,6 +1,3 @@
-# empty query
-{"type":"nosql", "query":{}}
-
 # drop table
 {"type": "sql", "drop": {"table_name": "test_cli"}}
 
@@ -26,14 +23,20 @@
 {"type":"sql","query":{"src_table":"test_cli","row_filter":{"op":">","v1":"0::col1","v2":-100}, "desired_columns": ["::col2"]}}
 
 # select (should return (2, b))
-{"type":"sql","query":{"src_table":"test_query_engine_select","row_filter":{"op":"&&","v1":{"op":">","v1":"0::col1","v2":1},"v2":{"op":"==","v1":"0::col2","v2":"b"}}}}
+{"type":"sql","query":{"src_table":"test_cli","row_filter":{"op":"&&","v1":{"op":">","v1":"0::col1","v2":1},"v2":{"op":"==","v1":"0::col2","v2":"b"}}}}
+
+# update record (2, b) -> (10, b)
+{"type":"sql","update":{"table_name":"test_cli","expr":{"op":"&&","v1":{"op":">","v1":"0::col1","v2":1},"v2":{"op":"==","v1":"0::col2","v2":"b"}}, "record": {"col1": 10, "col2": "b"}}}
+
+# select (should return (10, b))
+{"type":"sql","query":{"src_table":"test_cli","row_filter":{"op":"&&","v1":{"op":"==","v1":"0::col1","v2":10},"v2":{"op":"==","v1":"0::col2","v2":"b"}}}}
 
 # group by col2 & aggregation
 {"type":"sql","query":{"src_table":"test_cli","desired_columns":["::col2","::col1__MAX","::col1__MIN","::col1__COUNT","::col1__SUM","::col1__AVG"],"group_by":["::col2"]}}
 
 # sorting
 {"type":"sql","query":{"src_table":"test_cli","order_by":[{"column":"::col1","is_asc":true}]}}
-{"type":"sql","query":{"src_table":"test_cli","order_by":[{"column":"::col2","is_asc":true}]}}
+{"type":"sql","query":{"src_table":"test_cli","order_by":[{"column":"::col2","is_asc":false}]}}
 
 # join
 {"type": "sql", "drop": {"table_name": "test_cli_2"}}
