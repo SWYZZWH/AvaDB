@@ -64,17 +64,17 @@ def load_from_json(file_path: str, ctx: Context) -> (Metadata | None, Status):
         return None, FILE_NOT_EXIST
 
     supported_types = ctx.get_cfg().get_supported_field_types()
-    table_name = os.path.splitext(os.path.basename(file_path))[0]
+    # table_name = os.path.splitext(os.path.basename(file_path))[0]
 
     db_type = ctx.get_cfg().get_db_type()
     with open(file_path, "r") as f:
         metadata = json.load(f)
         if constant.METADATA_TABLE_NAME_KEY not in metadata:
             return None, UNKNOWN
-        if table_name != metadata[constant.METADATA_TABLE_NAME_KEY]:
-            return None, INCONSISTENT
+        # if table_name != metadata[constant.METADATA_TABLE_NAME_KEY]:
+        #     return None, INCONSISTENT
         if db_type == constant.DB_TYPE_NOSQL:
-            return Metadata(metadata[constant.METADATA_TABLE_NAME_KEY], db_type, {})
+            return Metadata(metadata[constant.METADATA_TABLE_NAME_KEY], db_type, []), OK
 
         # only read field info for SQL
         # SQL table with 0 column is not allowed

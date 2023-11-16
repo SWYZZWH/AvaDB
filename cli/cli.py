@@ -39,6 +39,9 @@ def print_file(file_name: str):
         print("\n")
 
 
+supported_apis = [constant.REQUEST_KEY_QUERY, constant.REQUEST_KEY_CREATE, constant.REQUEST_KEY_DROP, constant.REQUEST_KEY_DELETE, constant.REQUEST_KEY_UPDATE, constant.REQUEST_KEY_INSERT]
+
+
 def is_request_valid(request_json) -> bool:
     if request_json.get(constant.REQUEST_KEY_TYPE) is None:
         print("Please specify the type of database with: {{'{}': ${{database_type}}}}, supported values are: {}".format(constant.REQUEST_KEY_TYPE, config.supported_database_types))
@@ -48,8 +51,8 @@ def is_request_valid(request_json) -> bool:
         print("Please specify the correct type of database with: {{'{}': ${{database_type}}}}, supported values are: {}".format(constant.REQUEST_KEY_TYPE, config.supported_database_types))
         return False
 
-    if request_json.get(constant.REQUEST_KEY_QUERY) is None:
-        print("Please offer the query: {{'{}': ${{database_type}}}}, supported values are: {}".format(constant.REQUEST_KEY_QUERY, config.supported_database_types))
+    if all(api not in request_json for api in supported_apis):
+        print("Please offer the query: {{'{}': ${{database_type}}}}, supported values are: {}".format("method", config.supported_database_types))
         return False
 
     return True
@@ -88,11 +91,16 @@ def main():
                 logger.error("Invalid user input: {}".format(user_input))
                 continue
             cfg = get_cfg(request_json)
-            tmp_file = download_file('http://localhost:{}'.format(cfg.get_port()), json.dumps(request_json.get(constant.REQUEST_KEY_QUERY)))
-            if tmp_file == "":
-                print("Get result from database failed")
-                continue
-            print_file(tmp_file)
+            if constant.REQUEST_KEY_QUERY in request_json:
+                tmp_file = download_file('http://localhost:{}'.format(cfg.get_port()), json.dumps(request_json.get(constant.REQUEST_KEY_QUERY)))
+                if tmp_file == "":
+                    print("Get result from database failed")
+                    continue
+                print_file(tmp_file)
+            else:
+                method = [key for key in request_json.keys() if key in supported_apis][0]
+                response = requests.get("http://localhost:{}/{}".format(cfg.get_port(), method), json=json.dumps(request_json[method]))
+                print(response.text)
         except Exception as e:
             logger.error("An unexpected error occurred: {}".format(e))
             continue

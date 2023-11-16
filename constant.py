@@ -11,6 +11,11 @@ DB_TYPE_NOSQL = "nosql"
 
 REQUEST_KEY_TYPE = "type"
 REQUEST_KEY_QUERY = "query"
+REQUEST_KEY_CREATE = "create"
+REQUEST_KEY_DROP = "drop"
+REQUEST_KEY_DELETE = "delete"
+REQUEST_KEY_UPDATE = "update"
+REQUEST_KEY_INSERT= "insert"
 
 TABLES_SUB_DIR = "tables"
 METADATA_SUB_DIR = "metadata"
@@ -35,6 +40,20 @@ QUERY_ORDER_BY_COLUMN_KEY = "column"
 QUERY_ORDER_BY_ASC_KEY = "is_asc"
 QUERY_FILTER_KEY = "row_filter"
 QUERY_GROUP_BY = "group_by"
+
+INSERT_TABLE_NAME_KEY = "table_name"
+INSERT_RECORDS_KEY = "records"
+
+CREATE_TABLE_NAME_KEY = "table_name"
+DROP_TABLE_NAME_KEY = "table_name"
+
+UPDATE_TABLE_NAME_KEY = "table_name"
+UPDATE_EXPR_KEY = "expr"
+UPDATE_NEW_RECORD_KEY = "record"
+
+DELETE_TABLE_NAME_KEY = "table_name"
+DELETE_EXPR_KEY = "expr"
+
 
 TMP_TABLE_PREFIX = "_"
 

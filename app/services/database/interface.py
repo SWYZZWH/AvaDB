@@ -12,6 +12,9 @@ class DBInterface:
     def on_query(self, query: str) -> (QueryResult | None, Status):
         pass
 
+    def on_insert(self, query: str) -> Status:
+        pass
+
 
 class DBFactoryInterface:
 

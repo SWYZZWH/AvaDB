@@ -1,16 +1,32 @@
+ # empty query
  {"type":"nosql", "query":{}}
 
-
  # drop table
-
- {"type": "sql", "insert": {}}
+ {"type": "sql", "drop": {"table_name": "test_cli"}}
 
  # create table
-
+ {"type": "sql", "create": {"table_name": "test_cli", "fields": [{"col1": "int"}, {"col2": "str"}]}}
 
  # insert
-  {"type":"sql","insert":{}}
+ {"type":"sql", "insert": {"table_name": "test_cli", "records": [{"col1": 1, "col2": "a"}, {"col1": 3, "col2": "a"}, {"col1": 1, "col2": "b"}, {"col1": 2, "col2": "b"}, {"col1": 1, "col2": "c"}, {"col1": 1, "col2": "c"}]}}
 
+ # delete (1, a)
+ {"type":"sql", "delete": {"table_name": "test_cli", "expr": {"op":"&&","v1":{"op":"==","v1":"0::col1","v2":1},"v2":{"op":"==","v1":"0::col2","v2":"a"}}}}
 
- # select
- {"type":"sql","query":{"src_table":"test_query_engine_select","row_filter":{"op":"&&","v1":{"op":">","v1":"0::col1","v2":1},"v2":{"op":"==","v1":"0::col2","v2":"b"}}}}
+ # select (get all records)
+ {"type":"sql","query":{"src_table":"test_cli","row_filter":{"op":">","v1":"0::col1","v2":-100}}}
+
+# insert (1, a) back
+{"type":"sql", "insert": {"table_name": "test_cli", "records": [{"col1": 1, "col2": "a"}]}}
+
+# select (get all records)
+{"type":"sql","query":{"src_table":"test_cli","row_filter":{"op":">","v1":"0::col1","v2":-100}}}
+
+# drop table
+{"type": "sql", "drop": {"table_name": "test_cli"}}
+
+# select (get all records, no results)
+{"type":"sql","query":{"src_table":"test_cli","row_filter":{"op":">","v1":"0::col1","v2":-100}}}
+
+# select
+{"type":"sql","query":{"src_table":"test_query_engine_select","row_filter":{"op":"&&","v1":{"op":">","v1":"0::col1","v2":1},"v2":{"op":"==","v1":"0::col2","v2":"b"}}}}

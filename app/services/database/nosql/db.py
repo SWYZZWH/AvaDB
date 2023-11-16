@@ -2,11 +2,13 @@ import json
 import os
 import tempfile
 
+import constant
+
 from app.common.query.result import QueryResult
 from app.common.table.table import Table
 from app.services.database.interface import DBInterface
 from app.common.context.context import Context
-from app.common.error.status import Status, OK, START_FAILED, INTERNAL
+from app.common.error.status import Status, OK, START_FAILED, INTERNAL, INVALID_ARGUMENT
 
 
 def merge_json_files(data_dir: str, output_file_path: str):
@@ -51,3 +53,6 @@ class DB(DBInterface):
             return None, INTERNAL
 
         return QueryResult(format_output(table, self.ctx.cfg.get_tables_dir())), OK
+
+    def on_insert(self, query_str: str) -> Status:
+        pass

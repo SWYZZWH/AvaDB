@@ -1,10 +1,4 @@
-import csv
-import json
-import os
 import sys
-import tempfile
-
-import constant
 from flask import Flask, g, request, send_file
 
 from app.common.error.status import Status, START_FAILED, OK
@@ -22,8 +16,6 @@ from typing import cast
 app = Flask(__name__)
 
 
-# only support queries now
-# updating & inserting & deleting are not supported
 @app.route('/')
 def get_file():
     query = request.json
@@ -39,6 +31,46 @@ def get_file():
     g.ctx.logger.info("result dat can be found under {}".format(result.get_result_file_path()))
 
     return send_file(result.get_result_file_path(), as_attachment=True, mimetype='text/plain')
+
+
+@app.route('/insert')
+def insert():
+    status = g.ctx.get_db().on_insert(request.json)
+    if not status.ok():
+        return status.msg(), 400
+    return "ok", 200
+
+
+@app.route('/update')
+def update():
+    status = g.ctx.get_db().on_update(request.json)
+    if not status.ok():
+        return status.msg(), 400
+    return "ok", 200
+
+
+@app.route('/delete')
+def delete():
+    status = g.ctx.get_db().on_delete(request.json)
+    if not status.ok():
+        return status.msg(), 400
+    return "ok", 200
+
+
+@app.route('/drop')
+def drop():
+    status = g.ctx.get_db().on_drop(request.json)
+    if not status.ok():
+        return status.msg(), 400
+    return "ok", 200
+
+
+@app.route('/create')
+def create():
+    status = g.ctx.get_db().on_create(request.json)
+    if not status.ok():
+        return status.msg, 400
+    return "ok", 200
 
 
 def check_args():
