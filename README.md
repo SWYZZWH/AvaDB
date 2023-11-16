@@ -1,3 +1,53 @@
+
+### Usage
+
+#### Import Data
+
+TODO
+
+#### DB Server
+
+1. Start
+
+    ```bash
+    chmod +x scripts/start_all_server.sh
+    ./scripts/start_all_server.sh
+    ```
+   or start sql/nosql server only
+    ```bash
+    chmod +x scripts/start_sql_server.sh
+    ./scripts/start_sql_server.sh
+    ```
+    ```bash
+    chmod +x scripts/start_sql_server.sh
+    ./scripts/start_nosql_server.sh
+    ```
+
+2. Check Log
+
+   Logs are under project root dir. Namely `AvA DB nosql.log`, `AvA DB sql.log`, and `AvA DB cli.log`.
+
+#### CLI
+
+1. Start CLI
+    ```bash
+    chmod +x scripts/run_cli.sh
+    ./scripts/run_cli.sh
+    ```
+   Or
+    ```bash
+    cd ${project_root_dir}
+    python3 -m cli.cli
+    ```
+
+2. Send Query
+
+   example queries are in cli/test_query_sql.txt and cli/test_query_nosql.txt, try copy-paste them into cli and have fun!
+
+    ```bash
+    >>> {"type": "sql", "create": {"table_name": "test_cli", "fields": [{"col1": "int"}, {"col2": "str"}]}}
+    ```
+
 ### Important Notes
 
 #### Python Version
@@ -6,8 +56,8 @@
 
 #### Limited Memory
 
-- Ava DB is designed for limited memory space. Only a constant number(ideally 1) of records will be loaded into memory at one time.
-- Each record will be stored in a file, thus a great number of inodes will be used. For XFS and Btrfs, the amount of inodes is 2^64. For ext4, we might have to manually configure it to 2^64(however
+- Ava DB is designed for limited memory space. Only a constant number(even 1) of records will be loaded into memory at one time.
+- In worst case, each record will be stored in a file, thus a great number of inodes will be used. For XFS and Btrfs, the amount of inodes is 2^64. For ext4, we might have to manually configure it to 2^64(however
   for our dataset the default value 2^32 also works).
 - We should always return a file (by `send_file` in flask) as a response for any query. Directly return a json file is not allowed due to the limitation of memory.
 - All records of the same table should be stored under the same file. To iterate through all files with limited memory, call `os.scandir` or `os.walkdir` (which calls `readdir(3)` behind the scene).
@@ -58,166 +108,7 @@ V2
 4. Best approach for this project is to store data as chunks rather than reading as chunks using builtin methods like read_csv(n_chunks = ...). So that you have control over data processing as chunks.
    You can also store intermediate results on disk and construct final results from intermediate results again by reading them from the disk
 
-### Usage
-
-#### Import Data
-
-1. For Nosql
-    ```bash
-    chmod +x scripts/import_nosql_data.sh
-    ./scripts/import_nosql_data.sh
-    ```
-   Tables are under ./tables while the metadata is under ./metadata. Must delete these directories before import new data.
-
-#### DB Server
-
-1. Start
-
-    ```bash
-    chmod +x scripts/start_all_server.sh
-    ./scripts/start_all_server.sh
-    ```
-   or start sql/nosql server only
-    ```bash
-    chmod +x scripts/start_sql_server.sh
-    ./scripts/start_sql_server.sh
-    ```
-    ```bash
-    chmod +x scripts/start_sql_server.sh
-    ./scripts/start_nosql_server.sh
-    ```
-
-2. Check Log
-
-   Logs are under project root dir.
-
-#### CLI
-
-1. Start CLI
-    ```bash
-    chmod +x scripts/run_cli.sh
-    ./scripts/run_cli.sh
-    ```
-   Or
-    ```bash
-    cd ${project_root_dir}
-    python3 -m cli.cli
-    ```
-
-2. Send Query
-
-    ```bash
-    >>> {"db_type": "nosql", ${query}}
-    >>> {"db_type": "sql", ${query}}
-    ```
-
 ### Testcases
 
-1. duplicated table names
-2. invalid table names
-
-### Query Examples
-
-1. projection
-
-```json
-{
-  "src_table": "A",
-  "desired_columns": "::a"
-}
-```
-
-2. sorting
-
-```json
-{
-  "src_table": "A",
-  "order_by": [
-    {
-      "column": "::a",
-      "is_asc": true
-    }
-  ]
-}
-```
-
-3. filtering
-
-```json
-{
-  "src_table": "A",
-  "row_filter": {
-    "op": "&&",
-    "v1": {
-      "op": ">",
-      "v1": "::a",
-      "v2": 8.5
-    },
-    "v2": {
-      "op": "==",
-      "v1": "::b",
-      "v2": "Yes"
-    }
-  }
-}
-```
-
-4. group by & aggregation
-
-```json
-{
-  "src_table": "A",
-  "group_by": [
-    "::a"
-  ],
-  "desired_columns": [
-    "::a",
-    "::b_MAX"
-  ]
-}
-```
-
-5.join
-
-```json
-{
-  "src_table": {
-    "t1": "A",
-    "t2": "B",
-    "join_type": "outer",
-    "join_condition": {
-      "op": "&&",
-      "v1": {
-        "op": ">",
-        "v1": "0::a",
-        "v2": 8.5
-      },
-      "v2": {
-        "op": "==",
-        "v1": "1::b",
-        "v2": "Yes"
-      }
-    }
-  },
-  "desired_columns": [
-    "::0::a",
-    "::0::b"
-  ]
-}
-```
-
-6. subquery
-
-```json
-{
-  "src_table": {
-    "src_table": "A",
-    "desired_columns": [
-      "::a"
-    ]
-  },
-  "desired_columns": [
-    "::0::a"
-  ]
-}
+TODO
 ```
