@@ -159,6 +159,7 @@ class TableManager:
             self.logger.error("failed to pass check due to unable to load table names")
             return False
         if not os.path.exists(self.tables_dir):
+            os.makedirs(self.tables_dir)
             return True
         for f in os.listdir(self.tables_dir):
             full_path = os.path.join(self.tables_dir, f)
