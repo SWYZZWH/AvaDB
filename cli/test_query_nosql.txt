@@ -19,7 +19,6 @@
 # select (get all records)
 {"type":"nosql","query":{"src_table":"test_cli","row_filter":{"op":">","v1":"0::col1..col3","v2":-100}}}
 
-
 # projection (get all records)
 {"type":"nosql","query":{"src_table":"test_cli","row_filter":{"op":">","v1":"0::col1..col3","v2":-100}, "desired_columns": ["::col1..col3"]}}
 
@@ -42,8 +41,8 @@
 # join
 {"type": "nosql", "drop": {"table_name": "test_cli_2"}}
 {"type": "nosql", "create": {"table_name": "test_cli_2"}}
-{"type":"nosql", "insert": {"table_name": "test_cli_2", "records": [{"col3": 5, "col2": "a"}, {"col3": 6, "col2": "b"}]}}
-{"type":"nosql","query":{"src_table":{"t1":"test_cli","t2":"test_cli_2","join_type":"outer","join_condition":{"op":"==","v1":"0::col2","v2":"0::col2"}},"desired_columns":["::0::col1..col3","::0::col2","::1::col2","::1::col3"]}}
+{"type": "nosql", "insert": {"table_name": "test_cli_2", "records": [{"col3": 5, "col2": "a"}, {"col3": 6, "col2": "b"}]}}
+{"type": "nosql", "query":{"src_table":{"t1":"test_cli","t2":"test_cli_2","join_type":"outer","join_condition":{"op":"==","v1":"0::col2","v2":"0::col2"}},"desired_columns":["::0::col1..col3","::0::col2","::1::col2","::1::col3"]}}
 
 # drop table
 {"type": "nosql", "drop": {"table_name": "test_cli"}}
