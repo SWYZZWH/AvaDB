@@ -15,10 +15,10 @@ def download_file(url, query) -> str:
             logger.info("Receive response from url {}, status code: {}".format(url, r.status_code))
             r.raise_for_status()
 
-            temp_file = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
+            temp_file = tempfile.NamedTemporaryFile(mode='wb+', delete=False)
             logger.info("Tmp file {} is created to save file from {}".format(temp_file.name, url))
             for chunk in r.iter_content(chunk_size=constant.DOWNLOAD_CHUNK_SIZE):
-                temp_file.write(chunk.decode('utf-8'))
+                temp_file.write(chunk)
                 temp_file.flush()
 
             logger.info("Successfully download file from {} and save to {}".format(url, temp_file.name))

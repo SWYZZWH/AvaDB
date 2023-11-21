@@ -525,7 +525,7 @@ class TableManipulator:
                             d.update(build_join_record(table2.name, entry2))
                             new_records.append(d)
                             if len(new_records) == config.max_chunk_size:
-                                status = new_table.dump_bulk(new_records)
+                                status = new_table.chunk_manager.dump_bulk(new_records)
                                 if not status.ok():
                                     raise RuntimeError("failed to dump records")
                                 new_records = []

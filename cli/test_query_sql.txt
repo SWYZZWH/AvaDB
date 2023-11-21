@@ -6,7 +6,7 @@
 
 # insert
 {"type":"sql", "insert": {"table_name": "test_cli", "records": [{"col1": 1, "col2": "a"}, {"col1": 3, "col2": "a"}, {"col1": 1, "col2": "b"}, {"col1": 2, "col2": "b"}, {"col1": 1, "col2": "c"}, {"col1": 1, "col2": "c"}]}}
-{"type":"sql", "insert": {"table_name": "allsales", "records": [{"Name": "TheBestGame", "Platform": "PS4", "Year_of_Release": "2023", "Genre": "Action", "Publisher": "Viterbi", "NA_Sales": "1", "EU_Sales": "2", "JP_Sales": "0.9", "Other_Sales": "2", "Global_Sales": "5.9", "Critic_Score": "99", "Critic_Count": "29", "User_Score": "98", "User_Count": "9", "Developer": "Atlas","Rating": "T"}]}}
+{"type":"sql", "insert": {"table_name": "allSales", "records": [{"Name": "TheBestGame", "Platform": "PS4", "Year_of_Release": "2023", "Genre": "Action", "Publisher": "Viterbi", "NA_Sales": "1", "EU_Sales": "2", "JP_Sales": "0.9", "Other_Sales": "2", "Global_Sales": "5.9", "Critic_Score": "99", "Critic_Count": "29", "User_Score": "98", "User_Count": "9", "Developer": "Atlas","Rating": "T"}]}}
 
 # delete (1, a)
 {"type":"sql", "delete": {"table_name": "test_cli", "expr": {"op":"&&","v1":{"op":"==","v1":"0::col1","v2":1},"v2":{"op":"==","v1":"0::col2","v2":"a"}}}}
@@ -54,55 +54,51 @@
 
 
 #*********************demo*******************************
-# drop table
-{"type": "sql", "drop": {"table_name": "allsales"}}
-{"type": "sql", "drop": {"table_name": "ps4sales"}}
-{"type": "sql", "drop": {"table_name": "xboxsales"}}
+# create table and insert data by:
+# python3 import_data.py dataset/allSales.csv
+# python3 import_data.py dataset/xboxSales.csv
+# python3 import_data.py dataset/PS4Sales.csv
 
-# create table
-{"type": "sql", "create": {"table_name": "allsales", "fields": [{"Name": "str"}, {"Platform": "str"}, {"Year_of_Release": "str"},{"Genre": "str"},{"Publisher": "str"},{"NA_Sales": "str"},{"EU_Sales": "str"},{"JP_Sales": "str"},{"Other_Sales": "str"},{"Global_Sales": "str"},{"Critic_Score": "str"},{"Critic_Count": "str"},{"User_Score": "str"},{"User_Count": "str"},{"Developer": "str"},{"Rating":"str"}]}}
 
 # insert
-{"type":"sql", "insert": {"table_name": "allsales", "records": [{"Name": "TheBestGame", "Platform": "PS4", "Year_of_Release": "2023", "Genre": "Action", "Publisher": "Viterbi", "NA_Sales": "1", "EU_Sales": "2", "JP_Sales": "0.9", "Other_Sales": "2", "Global_Sales": "5.9", "Critic_Score": "99", "Critic_Count": "29", "User_Score": "98", "User_Count": "9", "Developer": "Atlas","Rating": "T"}]}}
+{"type":"sql", "insert": {"table_name": "allSales", "records": [{"Name": "TheBestGame", "Platform": "PS4", "Year_of_Release": "2023", "Genre": "Action", "Publisher": "Viterbi", "NA_Sales": "1", "EU_Sales": "2", "JP_Sales": "0.9", "Other_Sales": "2", "Global_Sales": "5.9", "Critic_Score": "99", "Critic_Count": "29", "User_Score": "98", "User_Count": "9", "Developer": "Atlas","Rating": "T"}]}}
 
 # select (should return TheBestGame)
-{"type":"sql","query":{"src_table":"allsales","row_filter":{"op":"==","v1":"0::Name","v2":"TheBestGame"}}}
+{"type":"sql","query":{"src_table":"allSales","row_filter":{"op":"==","v1":"0::Name","v2":"TheBestGame"}}}
 
 # delete my game
-{"type": "sql", "delete": {"table_name": "allsales", "expr": {"op": "==", "v1": "0::Name", "v2": "TheBestGame"}}}
+{"type": "sql", "delete": {"table_name": "allSales", "expr": {"op": "==", "v1": "0::Name", "v2": "TheBestGame"}}}
 
-# select (should return TheBestGame), it should disapear
-{"type":"sql","query":{"src_table":"allsales","row_filter":{"op":"==","v1":"0::Name","v2":"TheBestGame"}}}
+# select (should return TheBestGame), it should disappear
+{"type":"sql","query":{"src_table":"allSales","row_filter":{"op":"==","v1":"0::Name","v2":"TheBestGame"}}}
 
 # insert my game back
-{"type":"sql", "insert": {"table_name": "allsales", "records": [{"Name": "TheBestGame", "Platform": "PS4", "Year_of_Release": "2023", "Genre": "Action", "Publisher": "Viterbi", "NA_Sales": "1", "EU_Sales": "2", "JP_Sales": "0.9", "Other_Sales": "2", "Global_Sales": "5.9", "Critic_Score": "99", "Critic_Count": "29", "User_Score": "98", "User_Count": "9", "Developer": "Atlas","Rating": "T"}]}}
+{"type":"sql", "insert": {"table_name": "allSales", "records": [{"Name": "TheBestGame", "Platform": "PS4", "Year_of_Release": "2023", "Genre": "Action", "Publisher": "Viterbi", "NA_Sales": "1", "EU_Sales": "2", "JP_Sales": "0.9", "Other_Sales": "2", "Global_Sales": "5.9", "Critic_Score": "99", "Critic_Count": "29", "User_Score": "98", "User_Count": "9", "Developer": "Atlas","Rating": "T"}]}}
 
 # select (should return all the action game which is on PS4)
-{"type":"sql","query":{"src_table":"allsales","row_filter":{"op":"&&","v1":{"op":"==","v1":"0::Platform","v2":"PS4"},"v2":{"op":"==","v1":"0::Genre","v2":"Action"}}}}
+{"type":"sql","query":{"src_table":"allSales","row_filter":{"op":"&&","v1":{"op":"==","v1":"0::Platform","v2":"PS4"},"v2":{"op":"==","v1":"0::Genre","v2":"Action"}}}}
 
-# projection (get all records) TODO
-{"type":"sql","query":{"src_table":"allsales","row_filter":{"op":"==","v1":"0::Platform","v2":"PS4"}, "desired_columns": ["0::Name"]}}
+# projection (get all records)
+{"type":"sql","query":{"src_table":"allSales","row_filter":{"op":"==","v1":"0::Platform","v2":"PS4"}, "desired_columns": ["0::Name"]}}
 
-
-# update record (2, b) -> (10, b) todo
-{"type":"sql","update":{"table_name":"allsales","expr":{"op":"==","v1":"0::Name","v2":"TheBestGame"}}, "record": {"Genre": "Adventure"}}
+# update record
+{"type":"sql","update":{"table_name":"allSales","expr":{"op":"==","v1":"0::Name","v2":"TheBestGame"}, "record": {"Genre": "Adventure"}}}
 
 # select (should return TheBestGame)
-{"type":"sql","query":{"src_table":"allsales","row_filter":{"op":"==","v1":"0::Name","v2":"TheBestGame"}}}
+{"type":"sql","query":{"src_table":"allSales","row_filter":{"op":"==","v1":"0::Name","v2":"TheBestGame"}}}
 
-# group by col2 & aggregation todo
-{"type":"sql","query":{"src_table":"allsales","desired_columns":["::col2","::col1__MAX","::col1__MIN","::col1__COUNT","::col1__SUM","::col1__AVG"],"group_by":["::col2"]}}
+# group by Genre & get avg score
+{"type":"sql","query":{"src_table":"allSales","desired_columns":["::Platform", "::Critic_Score__COUNT", "::Critic_Score__AVG"],"group_by":["::Platform"]}}
 
-# sorting todo
-{"type":"sql","query":{"src_table":"allsales","order_by":[{"column":"::Global_Sales","is_asc":true}]}}
-{"type":"sql","query":{"src_table":"allsales","order_by":[{"column":"::Global_Sales","is_asc":false}]}}
+# sorting
+{"type":"sql","query":{"src_table":"allSales","order_by":[{"column":"::Global_Sales","is_asc":false}], "desired_columns": ["0::Name", "0::Global_Sales"]}}
+{"type":"sql","query":{"src_table":"allSales","order_by":[{"column":"::Critic_Score","is_asc":true}], "desired_columns": ["0::Name", "0::Critic_Score"]}}
 
-# join todo
-
-{"type":"sql","query":{"src_table":{"t1":"xboxsales","t2":"ps4sales","join_type":"outer","join_condition":{"op":"==","v1":"0::Game","v2":"0::Game"}},"desired_columns":["::0::Game","::0::Platform","::1::Game","::1::Platform"]}}
+# join (sports games which are sold on both xbox and ps4)
+{"type":"sql","query":{"src_table":{"t1":"xboxSales","t2":"PS4Sales","join_type":"outer","join_condition":{"op":"&&","v1":{"op":"==","v1":"0::Game","v2":"1::Game"},"v2":{"op":"==","v1":"0::Genre","v2":"Sports"}}},"desired_columns":["::0::Game","::1::Game","::0::Genre","::1::Genre"]}}
 
 # drop table
-{"type": "sql", "drop": {"table_name": "allsales"}}
+{"type": "sql", "drop": {"table_name": "allSales"}}
 
 # select (no results)
-{"type":"sql","query":{"src_table":"allsales","row_filter":{"op":"&&","v1":{"op":"==","v1":"0::Platform","v2":"PS4"},"v2":{"op":"==","v1":"0::Genre","v2":"Action"}}}}
+{"type":"sql","query":{"src_table":"allSales","row_filter":{"op":"&&","v1":{"op":"==","v1":"0::Platform","v2":"PS4"},"v2":{"op":"==","v1":"0::Genre","v2":"Action"}}}}
