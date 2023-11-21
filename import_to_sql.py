@@ -1,34 +1,13 @@
-#-*- coding: utf-8 -*-
 import csv
 import json
-import urllib
+
+import json
 
 import requests
 
-import logger
-
-
-def send_bulk_insert_commands(commands):
-    base_url = "http://localhost:9527/insert"
-    for cmd in commands:
-        try:
-
-            encoded_json = urllib.parse.quote(json.dumps(cmd))
-            full_url = f"{base_url}"
-            response = requests.get(full_url, json=encoded_json)
-
-            if response.status_code == 200:
-                print("Command executed successfully:", response.text)
-            else:
-                print("Failed to execute command:", response.text)
-        except Exception as e:
-            logger.error(f"Error sending command to {full_url}: {e}")
-
-
-# CSV 文件路径
 
 def test(commands):
-    base_url = "http://localhost:9527"
+    base_url = "http://localhost:9528"
     insert_url = "/".join([base_url, "insert"])
 
     response = requests.get(insert_url, json=json.dumps(commands))
@@ -41,7 +20,7 @@ def test(commands):
         print("Failed to execute command:", response.text)
 
 
-csv_file_path = 'dataset/xboxSales.csv'
+csv_file_path = 'dataset/xboxSales_new.csv'
 
 
 # 读取 CSV 文件并转换成 Python 字典列表
@@ -68,7 +47,7 @@ def convert_data(data):
         new_records.append(new_record)
 
     return {
-        "type": "nosql",
+        "type": "sql",
         "insert": {
             "table_name": "xboxSales",
             "records": new_records
@@ -91,18 +70,20 @@ def generate_nosql_commands(json_data):
     return commands
 
 
-base_url = "http://localhost:9527"
+# {"type": "sql", "create": {"table_name": "allsales", "fields": [{"Name": "str"}, {"Platform": "str"}, {"Year_of_Release": "str"},{"Genre": "str"},{"Publisher": "str"},{"NA_Sales": "float"}，{"EU_Sales": "float"}，{"JP_Sales": "float"}，{"Other_Sales": "float"}，{"Global_Sales": "float"}，{"Critic_Score": "float"}，{"Critic_Count": "str"}，{"User_Score": "float"}，{"User_Count": "str"}，{"Developer": "str"}，{"Rating": "float"}]}}
+base_url = "http://localhost:9528"
 drop_url = "/".join([base_url, "drop"])
 create_url = "/".join([base_url, "create"])
-requests.get(drop_url, json=json.dumps({"table_name": "testSales"}))
-requests.get(create_url, json=json.dumps({"table_name": "testSales"}))
+requests.get(drop_url, json=json.dumps({"table_name": "xboxSales"}))
+requests.get(create_url, json=json.dumps({"table_name": "xboxSales", "fields": [{"Game": "str"}, {"Year": "str"}, {"Genre": "str"},{"Publisher": "str"},{"North America": "str"},{"Europe": "str"},{"Japan": "str"},{"Rest of World": "str"},{"Global": "str"}]}))
 # 生成命令
-# commands = generate_nosql_commands(converted_data)
+commands = generate_nosql_commands(converted_data)
 # for cmd in commands:
 #     print(cmd)
-# for cmd in commands:
-#     test(cmd)
-#     print(cmd)
+for cmd in commands:
+    # print(cmd)
+    test(cmd)
+
 # send_bulk_insert_commands(commands)
 # 打印命令或将它们保存到文件中
 # for cmd in commands:
