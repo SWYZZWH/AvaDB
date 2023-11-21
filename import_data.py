@@ -11,7 +11,7 @@ import config
 
 def detect_column_info_from_csv(file_path):
     res = []
-    with open(file_path, newline='') as csvfile:
+    with open(file_path, newline='', encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile)
         rows = list(reader)
 
@@ -38,7 +38,7 @@ def detect_column_info_from_csv(file_path):
 
 def get_records_from_csv(file_path, field_info):
     res = []
-    with open(file_path, newline='') as csvfile:
+    with open(file_path, newline='', encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile)
         data = list(reader)[1:]
         for row in data:
