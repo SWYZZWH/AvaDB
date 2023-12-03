@@ -116,5 +116,4 @@ TODO
 ### GPTs link
 
 https://chat.openai.com/g/g-weihxGWPJ-avadb-project-manager
-```
 
